@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>betgirl — 장부 규칙과 검증 방법</title>
+  <meta name="description" content="betgirl 공개 베팅 장부가 어떤 규칙으로 기록되고, 누구나 어떻게 위변조를 검증할 수 있는지 설명합니다." />
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>" />
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <span class="brand">bet<em>girl</em><span class="brand-sub">공개 베팅 장부</span></span>
+    <nav>
+      <a href="/">원장</a>
+      <a href="/about" class="on">규칙</a>
+      <a href="/admin">운영</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <h1>장부 규칙과 검증 방법</h1>
+    <p>“믿어달라”고 말하는 대신, 믿지 않아도 확인할 수 있게 만들었습니다.</p>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>기록 규칙</h2></div>
+    <div style="padding:6px 18px 18px">
+      <ol style="color:var(--muted);font-size:14px;line-height:1.9">
+        <li><strong style="color:var(--text)">추가만 가능합니다.</strong> 베팅과 정산은 각각 추가 전용 테이블에 쌓이며, 데이터베이스 트리거가 UPDATE·DELETE를 거부합니다.</li>
+        <li><strong style="color:var(--text)">결과는 베팅과 분리해 기록합니다.</strong> 베팅 행에는 결과 칸이 아예 없습니다. 결과는 나중에 별도 정산 행으로 붙습니다. 그래서 “결과를 보고 베팅 내용을 고치는” 일이 구조적으로 불가능합니다.</li>
+        <li><strong style="color:var(--text)">정정도 공개됩니다.</strong> 잘못 입력한 건은 지우지 않고 <em>취소(cancel)</em> 정산으로 남긴 뒤 새 행을 추가합니다.</li>
+        <li><strong style="color:var(--text)">증빙을 붙입니다.</strong> betman 구매번호와 구매·정산 화면 캡처를 함께 남깁니다.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>해시 체인</h2></div>
+    <div style="padding:6px 18px 18px;color:var(--muted);font-size:14px">
+      <p>모든 행은 저장 시점에 아래 규칙으로 봉인됩니다.</p>
+      <pre class="hash" style="background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:14px;overflow-x:auto;font-size:12px;line-height:1.7">원문 = "bet" | 참가자 | 회차 | 경기 | 방식 | 선택 | 베팅액 | 배당 | 베팅시각(UTC) | 구매번호
+해시 = SHA-256( 직전 행의 해시 + 원문 )</pre>
+      <p>
+        각 행의 해시가 다음 행의 재료로 들어가므로, 과거 기록을 하나라도 손대면 그 이후 모든 해시가 어긋납니다.
+        <a href="/">원장 페이지</a>의 <strong style="color:var(--text)">무결성 검증</strong> 버튼은 서버 응답을 믿지 않고
+        방문자의 브라우저에서 전체 체인을 직접 다시 계산합니다.
+      </p>
+      <p>
+        표시된 값이 봉인된 원문과 같은지도 함께 대조하므로, 화면에만 다르게 보여주는 방식도 통하지 않습니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>숫자 정의</h2></div>
+    <div class="tbl-scroll">
+      <table style="min-width:520px">
+        <thead><tr><th>항목</th><th>정의</th></tr></thead>
+        <tbody>
+          <tr><td>베팅액</td><td>실제 구매 금액</td></tr>
+          <tr><td>회수액</td><td>정산으로 돌려받은 금액 (적중 시 당첨금, 무효·취소 시 원금)</td></tr>
+          <tr><td>손익</td><td>회수액 − 베팅액. 미확정 건은 계산에서 제외</td></tr>
+          <tr><td>적중률</td><td>적중 ÷ (적중 + 미적중). 무효·취소·미확정 제외</td></tr>
+          <tr><td>수익률</td><td>정산 완료분의 순손익 ÷ 정산 완료분의 베팅액</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>이 사이트가 하지 않는 것</h2></div>
+    <div style="padding:6px 18px 18px;color:var(--muted);font-size:14px">
+      <p>
+        betgirl.site는 베팅을 접수·중개하지 않고, 금전을 수취하지 않으며, 적중을 보장하거나 유료 정보를 판매하지 않습니다.
+        대한민국에서 합법적으로 발행되는 체육진흥투표권(betman.co.kr) 구매 내역을 기록하고 공개하는 역할만 합니다.
+        만 19세 미만은 구매할 수 없습니다. 도박 문제 상담은 국번 없이 <strong style="color:var(--text)">1336</strong>.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap"><strong>betgirl.site</strong></div>
+</footer>
+</body>
+</html>

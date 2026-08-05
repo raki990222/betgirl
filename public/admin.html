@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>betgirl 운영 — 기록 입력</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>" />
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <span class="brand">bet<em>girl</em><span class="brand-sub">운영</span></span>
+    <nav>
+      <a href="/">원장</a>
+      <a href="/about">규칙</a>
+      <a href="/admin" class="on">운영</a>
+      <a href="#" id="logout" hidden>로그아웃</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 로그인 -->
+  <section class="panel" id="loginPanel" hidden style="max-width:420px;margin:60px auto 0">
+    <div class="panel-head"><h2>운영자 로그인</h2></div>
+    <div style="padding:18px">
+      <div id="loginMsg"></div>
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">이메일</label>
+          <input id="email" type="email" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="password">비밀번호</label>
+          <input id="password" type="password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" style="width:100%">로그인</button>
+      </form>
+    </div>
+    <div class="note">Supabase Authentication에 등록된 계정만 기록을 추가할 수 있습니다.</div>
+  </section>
+
+  <div id="adminArea" hidden>
+
+    <div class="hero">
+      <h1>기록 입력</h1>
+      <p>
+        한 번 저장한 행은 <strong>수정도 삭제도 되지 않습니다.</strong> 잘못 입력했다면 정산에서
+        <em>취소(cancel)</em>로 남기고 새 행을 추가하세요. 그 흔적까지 공개되는 것이 이 장부의 규칙입니다.
+      </p>
+    </div>
+
+    <!-- 베팅 등록 -->
+    <section class="panel">
+      <div class="panel-head"><h2>1. 베팅 등록</h2></div>
+      <div style="padding:18px">
+        <div id="betMsg"></div>
+        <form id="betForm">
+          <div class="row">
+            <div class="field">
+              <label for="bettor">참가자 *</label>
+              <input id="bettor" required placeholder="예: 지연" />
+            </div>
+            <div class="field">
+              <label for="event_key">회차 / 이벤트 *</label>
+              <input id="event_key" required placeholder="예: 프로토 승부식 2026-12회차" />
+            </div>
+            <div class="field">
+              <label for="placed_at">베팅 시각 (KST) *</label>
+              <input id="placed_at" type="datetime-local" step="1" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="match_label">경기 *</label>
+              <input id="match_label" required placeholder="예: 토트넘 vs 아스널" />
+            </div>
+            <div class="field">
+              <label for="sport">종목</label>
+              <input id="sport" placeholder="축구" />
+            </div>
+            <div class="field">
+              <label for="league">리그</label>
+              <input id="league" placeholder="EPL" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="market">방식 *</label>
+              <select id="market">
+                <option>승무패</option>
+                <option>핸디캡</option>
+                <option>언더오버</option>
+                <option>기록식</option>
+                <option>기타</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pick">선택 *</label>
+              <input id="pick" required placeholder="예: 토트넘 승" />
+            </div>
+            <div class="field">
+              <label for="stake">베팅액 (원) *</label>
+              <input id="stake" type="number" min="1" step="1" required />
+            </div>
+            <div class="field">
+              <label for="odds">배당 *</label>
+              <input id="odds" type="number" min="1" step="0.01" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="ticket_no">betman 구매번호</label>
+              <input id="ticket_no" placeholder="구매내역의 발행번호" />
+            </div>
+            <div class="field">
+              <label for="proof_url">구매 증빙 URL</label>
+              <input id="proof_url" type="url" placeholder="https://…" />
+            </div>
+            <div class="field">
+              <label for="note">메모</label>
+              <input id="note" />
+            </div>
+          </div>
+          <button type="submit">원장에 추가</button>
+        </form>
+      </div>
+      <div class="note">저장 즉시 공개 원장에 나타나며 되돌릴 수 없습니다.</div>
+    </section>
+
+    <!-- 정산 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>2. 정산 입력</h2>
+        <div class="spacer"></div>
+        <button class="ghost" id="reloadPending">새로고침</button>
+      </div>
+      <div style="padding:18px">
+        <div id="settleMsg"></div>
+        <form id="settleForm">
+          <div class="field">
+            <label for="bet_seq">미확정 베팅 *</label>
+            <select id="bet_seq" required></select>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="result">결과 *</label>
+              <select id="result">
+                <option value="win">적중 (win)</option>
+                <option value="lose">미적중 (lose)</option>
+                <option value="void">무효 (void) — 원금 반환</option>
+                <option value="cancel">취소 (cancel) — 오기입 정정</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="payout">회수액 (원) *</label>
+              <input id="payout" type="number" min="0" step="1" value="0" required />
+            </div>
+            <div class="field">
+              <label for="settled_at">정산 시각 (KST) *</label>
+              <input id="settled_at" type="datetime-local" step="1" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="settle_proof_url">정산 증빙 URL</label>
+              <input id="settle_proof_url" type="url" placeholder="https://…" />
+            </div>
+            <div class="field">
+              <label for="settle_note">메모</label>
+              <input id="settle_note" />
+            </div>
+          </div>
+          <button type="submit">정산 확정</button>
+        </form>
+      </div>
+      <div class="note" id="pendingNote"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap"><strong>betgirl.site</strong> 운영 콘솔</div>
+</footer>
+
+<script src="/config.js"></script>
+<script type="module" src="/assets/admin.js"></script>
+</body>
+</html>
