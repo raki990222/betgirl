@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>betgirl — 공개 베팅 장부</title>
-  <meta name="description" content="betman.co.kr 베팅 내역과 정산을 사후 수정 없이 그대로 공개하는 원장입니다." />
-  <meta property="og:title" content="betgirl — 공개 베팅 장부" />
-  <meta property="og:description" content="베팅 시각·금액·배당·결과·정산을 추가 전용 원장으로 공개합니다." />
+  <title>betgirl — 경기 보드</title>
+  <meta name="description" content="경기 시작 전에 픽을 공개하고, 결과와 정산까지 그대로 기록하는 공개 장부입니다." />
+  <meta property="og:title" content="betgirl — 경기 보드" />
+  <meta property="og:description" content="픽은 경기 시작 전에만 등록됩니다. 등록된 픽은 수정도 삭제도 되지 않습니다." />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="/assets/styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>" />
@@ -15,11 +15,13 @@
 
 <header class="site">
   <div class="wrap">
-    <span class="brand">bet<em>girl</em><span class="brand-sub">공개 베팅 장부</span></span>
+    <span class="brand">bet<em>girl</em><span class="brand-sub">경기 보드</span></span>
     <nav>
-      <a href="/" class="on">원장</a>
+      <a href="/">경기</a>
+      <a href="/ledger">원장</a>
       <a href="/about">규칙</a>
       <a href="/admin">운영</a>
+      <a href="#" id="logout" hidden>로그아웃</a>
     </nav>
   </div>
 </header>
@@ -27,100 +29,72 @@
 <main class="wrap">
 
   <div class="hero">
-    <h1>모든 베팅과 정산을 그대로 공개합니다</h1>
+    <h1>경기 시작 전에, 공개적으로</h1>
     <p>
-      betman.co.kr에서 실제로 산 베팅만 기록합니다. 기록은 <strong>추가만 가능</strong>하고
-      수정·삭제가 불가능하며, 각 행은 앞 행의 해시에 이어 붙는 체인으로 봉인됩니다.
-      아래 <em>무결성 검증</em> 버튼을 누르면 당신의 브라우저에서 직접 다시 계산해 확인할 수 있습니다.
+      픽은 <strong>경기가 시작되기 전에만</strong> 등록됩니다. 시작 시각이 지나면 데이터베이스가 거부합니다.
+      한 번 등록한 픽은 수정도 삭제도 되지 않고, 결과와 정산까지 <a href="/ledger">공개 원장</a>에 그대로 남습니다.
     </p>
   </div>
 
-  <div class="stat-grid" id="summary"></div>
+  <div id="account"></div>
 
-  <section class="panel">
-    <div class="panel-head">
-      <h2>무결성</h2>
-      <div class="spacer"></div>
-      <button id="verifyBtn" class="ghost">무결성 검증</button>
-    </div>
-    <div class="note" id="verifyOut">
-      아직 검증하지 않았습니다. 버튼을 누르면 전체 원장을 내려받아 브라우저에서 SHA-256 체인을 재계산합니다.
-    </div>
-  </section>
+  <div class="board-grid">
 
-  <section class="panel">
-    <div class="panel-head">
-      <h2>참가자별 성적</h2>
+    <!-- 경기 목록 -->
+    <div>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>경기</h2>
+          <div class="spacer"></div>
+          <div class="filters">
+            <select id="fRound"><option value="">회차 전체</option></select>
+            <label style="margin:0;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap">
+              <input type="checkbox" id="fOpen" checked style="width:auto" /> 등록 가능만
+            </label>
+          </div>
+        </div>
+        <div id="matches"><div class="empty">불러오는 중…</div></div>
+      </section>
     </div>
-    <div class="tbl-scroll">
-      <table id="statsTbl">
-        <thead>
-          <tr>
-            <th>참가자</th>
-            <th class="num">베팅</th>
-            <th class="num">적중/미적중</th>
-            <th class="num">적중률</th>
-            <th class="num">베팅액</th>
-            <th class="num">회수액</th>
-            <th class="num">순손익</th>
-            <th class="num">수익률</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </section>
 
-  <section class="panel">
-    <div class="panel-head">
-      <h2>베팅 원장</h2>
-      <div class="spacer"></div>
-      <div class="filters">
-        <select id="fBettor"><option value="">참가자 전체</option></select>
-        <select id="fStatus">
-          <option value="">상태 전체</option>
-          <option value="pending">미확정</option>
-          <option value="win">적중</option>
-          <option value="lose">미적중</option>
-          <option value="void">무효</option>
-          <option value="cancel">취소</option>
-        </select>
-        <input id="fQuery" type="search" placeholder="경기·선택 검색" />
-      </div>
+    <!-- 베팅 슬립 -->
+    <div>
+      <section class="panel slip">
+        <div class="panel-head">
+          <h2>내 픽</h2>
+          <div class="spacer"></div>
+          <button class="ghost" id="clearSlip" hidden>비우기</button>
+        </div>
+        <div id="slipMsg" style="padding:0 18px"></div>
+        <div id="slipBody"><div class="empty">경기에서 배당을 눌러 픽을 담으세요.</div></div>
+        <div id="slipFoot" hidden>
+          <div class="slip-total">
+            <span>합계</span>
+            <strong id="slipTotal">0원</strong>
+          </div>
+          <div style="padding:0 18px 18px">
+            <button id="submitSlip" style="width:100%">픽 등록</button>
+          </div>
+        </div>
+        <div class="note">
+          등록하면 되돌릴 수 없습니다. 이 사이트는 금전을 받지 않습니다 —
+          실제 구매는 betman.co.kr에서 직접 하시고, 여기에는 기록만 남습니다.
+        </div>
+      </section>
     </div>
-    <div class="tbl-scroll">
-      <table id="ledgerTbl">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>베팅 시각(KST)</th>
-            <th>참가자</th>
-            <th>경기 / 선택</th>
-            <th class="num">베팅액</th>
-            <th class="num">배당</th>
-            <th>결과</th>
-            <th class="num">회수액</th>
-            <th class="num">손익</th>
-            <th>증빙</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div class="note" id="ledgerNote">불러오는 중…</div>
-  </section>
 
+  </div>
 </main>
 
 <footer class="site">
   <div class="wrap">
-    <strong>betgirl.site</strong> — 본 사이트는 베팅을 접수하거나 중개하지 않습니다.
+    <strong>betgirl.site</strong> — 본 사이트는 베팅을 접수하거나 중개하지 않으며 금전을 수취하지 않습니다.
     대한민국에서 합법적인 체육진흥투표권(betman.co.kr) 구매 내역을 기록·공개하는 용도로만 운영됩니다.
-    도박 문제 상담 국번없이 <strong>1336</strong>.
+    만 19세 미만 이용 불가. 도박 문제 상담 국번없이 <strong>1336</strong>.
   </div>
 </footer>
 
 <script src="/config.js"></script>
-<script type="module" src="/assets/index.js"></script>
+<script type="module" src="/assets/board.js"></script>
 </body>
 </html>

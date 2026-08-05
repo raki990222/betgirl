@@ -14,9 +14,11 @@
   <div class="wrap">
     <span class="brand">bet<em>girl</em><span class="brand-sub">공개 베팅 장부</span></span>
     <nav>
-      <a href="/">원장</a>
-      <a href="/about" class="on">규칙</a>
+      <a href="/">경기</a>
+      <a href="/ledger">원장</a>
+      <a href="/about">규칙</a>
       <a href="/admin">운영</a>
+      <a href="#" id="logout" hidden>로그아웃</a>
     </nav>
   </div>
 </header>
@@ -31,6 +33,9 @@
     <div class="panel-head"><h2>기록 규칙</h2></div>
     <div style="padding:6px 18px 18px">
       <ol style="color:var(--muted);font-size:14px;line-height:1.9">
+        <li><strong style="color:var(--text)">픽은 경기 시작 전에만 등록됩니다.</strong> 시작 시각이 지나면 데이터베이스가 등록을 거부합니다. 화면에서 버튼을 감추는 수준이 아니라 서버에서 막습니다.</li>
+        <li><strong style="color:var(--text)">경기명·선택지·배당은 서버가 채웁니다.</strong> 브라우저가 보낸 배당값은 무시하고, 미리 게시된 경기 정보에서 직접 가져와 기록합니다. 유리한 배당으로 바꿔 넣을 수 없습니다.</li>
+        <li><strong style="color:var(--text)">남의 이름으로 등록할 수 없습니다.</strong> 참가자 이름은 계정에 묶이고, 한 번 정하면 변경이 불가능합니다.</li>
         <li><strong style="color:var(--text)">추가만 가능합니다.</strong> 베팅과 정산은 각각 추가 전용 테이블에 쌓이며, 데이터베이스 트리거가 UPDATE·DELETE를 거부합니다.</li>
         <li><strong style="color:var(--text)">결과는 베팅과 분리해 기록합니다.</strong> 베팅 행에는 결과 칸이 아예 없습니다. 결과는 나중에 별도 정산 행으로 붙습니다. 그래서 “결과를 보고 베팅 내용을 고치는” 일이 구조적으로 불가능합니다.</li>
         <li><strong style="color:var(--text)">정정도 공개됩니다.</strong> 잘못 입력한 건은 지우지 않고 <em>취소(cancel)</em> 정산으로 남긴 뒤 새 행을 추가합니다.</li>
@@ -87,5 +92,11 @@
 <footer class="site">
   <div class="wrap"><strong>betgirl.site</strong></div>
 </footer>
+
+<script src="/config.js"></script>
+<script type="module">
+  import { initNav } from '/assets/app.js';
+  initNav('/about');
+</script>
 </body>
 </html>

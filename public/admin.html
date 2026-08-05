@@ -14,9 +14,10 @@
   <div class="wrap">
     <span class="brand">bet<em>girl</em><span class="brand-sub">운영</span></span>
     <nav>
-      <a href="/">원장</a>
+      <a href="/">경기</a>
+      <a href="/ledger">원장</a>
       <a href="/about">규칙</a>
-      <a href="/admin" class="on">운영</a>
+      <a href="/admin">운영</a>
       <a href="#" id="logout" hidden>로그아웃</a>
     </nav>
   </div>
@@ -54,9 +55,99 @@
       </p>
     </div>
 
+    <!-- 경기 등록 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>1. 경기 등록</h2>
+        <div class="spacer"></div>
+        <button class="ghost" id="reloadEvents">새로고침</button>
+      </div>
+      <div style="padding:18px">
+        <div id="eventMsg"></div>
+        <p class="dim" style="margin-top:0">
+          KBO 공식 일정 등 <strong>공식 출처의 실제 경기만</strong> 등록하세요. 등록되면 메인 보드에 노출되고,
+          참가자는 시작 시각 전까지만 픽을 넣을 수 있습니다.
+        </p>
+        <form id="eventForm">
+          <div class="row">
+            <div class="field">
+              <label for="ev_round">회차 / 이벤트 *</label>
+              <input id="ev_round" required placeholder="예: 2026-32회차" />
+            </div>
+            <div class="field">
+              <label for="ev_sport">종목 *</label>
+              <input id="ev_sport" value="야구" required />
+            </div>
+            <div class="field">
+              <label for="ev_league">리그 *</label>
+              <input id="ev_league" value="KBO" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="ev_away">원정 팀 *</label>
+              <input id="ev_away" required placeholder="두산 베어스" />
+            </div>
+            <div class="field">
+              <label for="ev_home">홈 팀 *</label>
+              <input id="ev_home" required placeholder="LG 트윈스" />
+            </div>
+            <div class="field">
+              <label for="ev_start">경기 시작 (KST) *</label>
+              <input id="ev_start" type="datetime-local" step="60" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="ev_market">방식 *</label>
+              <select id="ev_market">
+                <option value="승패">승패 (무승부 없음)</option>
+                <option value="승무패">승무패</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ev_odds_away">원정 승 배당 *</label>
+              <input id="ev_odds_away" type="number" min="1" step="0.01" required />
+            </div>
+            <div class="field">
+              <label for="ev_odds_home">홈 승 배당 *</label>
+              <input id="ev_odds_home" type="number" min="1" step="0.01" required />
+            </div>
+            <div class="field" id="drawField" hidden>
+              <label for="ev_odds_draw">무승부 배당</label>
+              <input id="ev_odds_draw" type="number" min="1" step="0.01" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="ev_url">공식 정보 URL</label>
+              <input id="ev_url" type="url" placeholder="https://www.koreabaseball.com/…" />
+            </div>
+            <div class="field">
+              <label for="ev_note">메모</label>
+              <input id="ev_note" />
+            </div>
+          </div>
+          <button type="submit">경기 게시</button>
+        </form>
+      </div>
+      <div class="tbl-scroll">
+        <table id="eventsTbl">
+          <thead>
+            <tr>
+              <th>#</th><th>회차</th><th>경기</th><th>시작(KST)</th>
+              <th class="num">픽</th><th>상태</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="note" id="eventsNote"></div>
+    </section>
+
     <!-- 베팅 등록 -->
     <section class="panel">
-      <div class="panel-head"><h2>1. 베팅 등록</h2></div>
+      <div class="panel-head"><h2>2. 베팅 수동 기록</h2></div>
       <div style="padding:18px">
         <div id="betMsg"></div>
         <form id="betForm">
@@ -129,13 +220,16 @@
           <button type="submit">원장에 추가</button>
         </form>
       </div>
-      <div class="note">저장 즉시 공개 원장에 나타나며 되돌릴 수 없습니다.</div>
+      <div class="note">
+        보드를 거치지 않고 직접 기록하는 경로입니다. betman에서 실제로 구매한 건을 증빙과 함께 남길 때 사용하세요.
+        저장 즉시 공개 원장에 나타나며 되돌릴 수 없습니다.
+      </div>
     </section>
 
     <!-- 정산 -->
     <section class="panel">
       <div class="panel-head">
-        <h2>2. 정산 입력</h2>
+        <h2>3. 정산 입력</h2>
         <div class="spacer"></div>
         <button class="ghost" id="reloadPending">새로고침</button>
       </div>

@@ -100,6 +100,38 @@ export async function verifyLedger() {
   };
 }
 
+/* ------------------------------------------------------------------ 공통 내비 */
+export async function initNav(activeHref) {
+  document.querySelectorAll('header.site nav a').forEach((a) => {
+    if (a.getAttribute('href') === activeHref) a.classList.add('on');
+  });
+
+  const out = document.querySelector('#logout');
+  if (!out) return;
+
+  const { data } = await sb.auth.getSession();
+  out.hidden = !data.session;
+  out.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await sb.auth.signOut();
+    location.reload();
+  });
+}
+
+/** 현재 로그인 사용자의 세션·프로필·운영자 여부를 한 번에 가져온다. */
+export async function currentUser() {
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+  if (!session) return { session: null, profile: null, isOperator: false };
+
+  const [{ data: profile }, { data: op }] = await Promise.all([
+    sb.from('betgirl_profiles').select('handle').eq('user_id', session.user.id).maybeSingle(),
+    sb.from('betgirl_operators').select('user_id').eq('user_id', session.user.id).maybeSingle(),
+  ]);
+
+  return { session, profile: profile ?? null, isOperator: !!op };
+}
+
 /* ------------------------------------------------- Supabase 전량 조회(1,000행 캡 회피) */
 export async function selectAll(table, columns, { order = 'seq', ascending = true } = {}) {
   const PAGE = 1000;

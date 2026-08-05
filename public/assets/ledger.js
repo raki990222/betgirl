@@ -1,5 +1,5 @@
 // betgirl — 공개 원장 화면
-import { sb, selectAll, verifyLedger, won, signedWon, pct, kst, esc, STATUS_LABEL } from './app.js';
+import { sb, initNav, selectAll, verifyLedger, won, signedWon, pct, kst, esc, STATUS_LABEL } from './app.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -179,4 +179,5 @@ $('#verifyBtn').addEventListener('click', runVerify);
 ['#fBettor', '#fStatus'].forEach((s) => $(s).addEventListener('change', renderLedger));
 $('#fQuery').addEventListener('input', renderLedger);
 
+initNav('/ledger');
 load();

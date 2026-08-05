@@ -5,22 +5,32 @@ Vercel(호스팅) + Supabase(Postgres, Auth) 구성이며 빌드 단계가 없�
 
 ```
 public/
-  index.html      공개 원장 (요약·참가자별 성적·베팅 목록·무결성 검증)
+  index.html      경기 보드 — 공식 경기 목록·배당, 픽 등록 (betman 스타일)
+  ledger.html     공개 원장 — 요약·참가자별 성적·베팅 목록·무결성 검증
   about.html      기록 규칙과 검증 방법
-  admin.html      운영자 콘솔 (로그인 후 베팅/정산 추가)
-  config.js       Supabase URL / anon 키  ← 배포 전 반드시 채울 것
-  assets/         styles.css, app.js(공통), index.js, admin.js
+  admin.html      운영 콘솔 — 경기 게시 / 수동 기록 / 정산
+  config.js       Supabase URL / anon 키
+  assets/         styles.css, app.js(공통), board.js, ledger.js, admin.js
 db/
-  schema.sql      테이블·트리거·뷰·RLS. Supabase SQL Editor에서 1회 실행
+  schema.sql              001 — 원장 테이블·해시 체인·RLS
+  002_events_and_picks.sql  경기 보드·참가자 프로필·운영자·픽 등록 규칙
+  003_seed_demo.sql         운영자 등록 + 예시 경기
+  parity_check.sql          SQL↔JS 해시 규칙 일치 확인 (롤백됨)
 vercel.json       정적 배포 설정 (outputDirectory=public, 보안 헤더)
 ```
+
+마이그레이션은 **001 → 002 → 003 순서**로 실행한다.
 
 ## 설계 요약
 
 | 원칙 | 구현 |
 |------|------|
+| 픽은 경기 시작 전에만 | `betgirl_fill_from_event()` 가 `now() >= start_at` 이면 INSERT 거부 |
+| 배당 조작 불가 | 경기명·선택지·배당을 클라이언트가 아니라 서버가 `betgirl_events` 에서 채움 |
+| 이름 도용 불가 | `bettor = betgirl_my_handle()` RLS + 핸들 변경 잠금 |
 | 사후 조작 불가 | `betgirl_bets`, `betgirl_settlements` 에 UPDATE/DELETE 차단 트리거 |
 | 결과 보고 베팅 못 고침 | 베팅 테이블에 결과 컬럼이 없음. 결과는 별도 정산 행으로만 추가 |
+| 정산은 운영자만 | `betgirl_settlements` INSERT 는 `betgirl_is_operator()` 필요 |
 | 누구나 검증 | 행마다 `SHA-256(직전 해시 + 정규화 원문)` 체인. 원장 페이지에서 브라우저가 직접 재계산 |
 | 정정도 공개 | 오기입은 삭제가 아니라 `cancel` 정산 + 새 행 추가 |
 | 키 노출 안전 | 프런트는 anon 키만 사용. 읽기 공개 / 쓰기는 `authenticated` 만 (RLS) |

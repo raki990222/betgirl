@@ -1,5 +1,5 @@
 // betgirl — 운영 콘솔 (기록 추가 전용)
-import { sb, won, kst, esc } from './app.js';
+import { sb, initNav, currentUser, won, kst, esc } from './app.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -17,17 +17,32 @@ const nowLocal = () => {
 };
 
 /* ------------------------------------------------------------------ 세션 */
+let me = { session: null, profile: null, isOperator: false };
+
 async function gate() {
-  const { data } = await sb.auth.getSession();
-  const on = !!data.session;
+  me = await currentUser();
+  const on = !!me.session;
+
   $('#loginPanel').hidden = on;
   $('#adminArea').hidden = !on;
-  $('#logout').hidden = !on;
-  if (on) {
-    $('#placed_at').value ||= nowLocal();
-    $('#settled_at').value ||= nowLocal();
-    loadPending();
+  if (!on) return;
+
+  if (!me.isOperator) {
+    $('#adminArea').innerHTML = `
+      <section class="panel" style="max-width:520px;margin:60px auto 0">
+        <div class="panel-head"><h2>운영자 권한이 없습니다</h2></div>
+        <div class="note">
+          이 계정은 기록을 추가할 수 없습니다. 픽은 <a href="/">경기 보드</a>에서 등록하세요.
+        </div>
+      </section>`;
+    return;
   }
+
+  $('#placed_at').value ||= nowLocal();
+  $('#settled_at').value ||= nowLocal();
+  $('#ev_start').value ||= nowLocal().slice(0, 16);
+  loadPending();
+  loadEvents();
 }
 
 $('#loginForm').addEventListener('submit', async (e) => {
@@ -41,11 +56,109 @@ $('#loginForm').addEventListener('submit', async (e) => {
   gate();
 });
 
-$('#logout').addEventListener('click', async (e) => {
-  e.preventDefault();
-  await sb.auth.signOut();
-  location.reload();
+/* ------------------------------------------------------------------ 경기 */
+$('#ev_market').addEventListener('change', () => {
+  $('#drawField').hidden = $('#ev_market').value !== '승무패';
 });
+
+$('#eventForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true;
+  msg('#eventMsg', '');
+
+  const home = $('#ev_home').value.trim();
+  const away = $('#ev_away').value.trim();
+  const market = $('#ev_market').value;
+
+  const options = [
+    { code: 'AWAY', label: `${away} 승`, odds: Number($('#ev_odds_away').value) },
+    { code: 'HOME', label: `${home} 승`, odds: Number($('#ev_odds_home').value) },
+  ];
+  if (market === '승무패' && Number($('#ev_odds_draw').value) >= 1) {
+    options.splice(1, 0, { code: 'DRAW', label: '무승부', odds: Number($('#ev_odds_draw').value) });
+  }
+
+  const { data, error } = await sb
+    .from('betgirl_events')
+    .insert({
+      round_key: $('#ev_round').value.trim(),
+      sport: $('#ev_sport').value.trim(),
+      league: $('#ev_league').value.trim(),
+      home,
+      away,
+      start_at: toISO($('#ev_start').value),
+      market,
+      options,
+      official_url: $('#ev_url').value.trim() || null,
+      note: $('#ev_note').value.trim() || null,
+    })
+    .select('id')
+    .single();
+
+  btn.disabled = false;
+  if (error) return msg('#eventMsg', '게시 실패: ' + error.message, 'err');
+
+  msg('#eventMsg', `#${data.id} 경기가 보드에 게시되었습니다.`, 'ok');
+  ['#ev_home', '#ev_away', '#ev_odds_home', '#ev_odds_away', '#ev_odds_draw', '#ev_url', '#ev_note']
+    .forEach((s) => ($(s).value = ''));
+  loadEvents();
+});
+
+async function loadEvents() {
+  const { data, error } = await sb
+    .from('betgirl_board')
+    .select('id,round_key,home,away,start_at,status,pick_count,open_for_picks')
+    .order('start_at', { ascending: false })
+    .limit(200);
+
+  const tb = $('#eventsTbl tbody');
+  if (error) {
+    $('#eventsNote').textContent = '경기 목록 조회 실패: ' + error.message;
+    return;
+  }
+  if (!data.length) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty">게시된 경기가 없습니다.</td></tr>';
+    $('#eventsNote').textContent = '';
+    return;
+  }
+
+  tb.innerHTML = data
+    .map(
+      (e) => `<tr>
+        <td class="dim">${e.id}</td>
+        <td>${esc(e.round_key)}</td>
+        <td>${esc(e.away)} <span class="dim">@</span> ${esc(e.home)}</td>
+        <td>${esc(kst(e.start_at))}</td>
+        <td class="num">${e.pick_count}</td>
+        <td><span class="badge ${e.open_for_picks ? 'pending' : 'void'}">${
+          e.open_for_picks ? '등록 가능' : esc(e.status === 'open' ? '시작됨' : e.status)
+        }</span></td>
+        <td>${
+          e.status === 'open'
+            ? `<button class="ghost" data-close="${e.id}">마감</button>`
+            : '<span class="dim">—</span>'
+        }</td>
+      </tr>`
+    )
+    .join('');
+
+  $('#eventsNote').textContent = `${data.length}경기 · 마감하면 배당·대진 수정이 영구히 잠깁니다.`;
+}
+
+$('#eventsTbl').addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-close]');
+  if (!btn) return;
+  btn.disabled = true;
+  const { error } = await sb
+    .from('betgirl_events')
+    .update({ status: 'closed' })
+    .eq('id', Number(btn.dataset.close));
+  if (error) msg('#eventMsg', '마감 실패: ' + error.message, 'err');
+  loadEvents();
+});
+
+$('#reloadEvents').addEventListener('click', loadEvents);
 
 /* ------------------------------------------------------------------ 베팅 */
 $('#betForm').addEventListener('submit', async (e) => {
@@ -158,4 +271,5 @@ $('#settleForm').addEventListener('submit', async (e) => {
   loadPending();
 });
 
+initNav('/admin');
 gate();

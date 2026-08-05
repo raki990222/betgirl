@@ -183,6 +183,93 @@ button.ghost { background: var(--panel-2); color: var(--text); border: 1px solid
 
 .empty { padding: 40px 18px; text-align: center; color: var(--muted); font-size: 14px; }
 
+/* ---------------------------------------------------------------- 경기 보드 */
+.board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 22px;
+  align-items: start;
+}
+
+.whoami {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  margin-bottom: 22px;
+  font-size: 14px;
+}
+
+.round-head {
+  padding: 12px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+.round-head .dim { font-weight: 500; margin-left: 6px; }
+
+.match { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.match:last-child { border-bottom: 0; }
+.match.closed { opacity: 0.5; }
+
+.match-top { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.match-top .spacer { margin-left: auto; }
+.match-teams { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 10px; }
+.match-foot { font-size: 12px; margin-top: 9px; }
+
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+button.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-weight: 600;
+  text-align: left;
+}
+button.opt:hover:not(:disabled) { border-color: var(--accent); filter: none; }
+button.opt.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+button.opt:disabled { opacity: 0.45; }
+.opt-label { flex: 1; font-size: 14px; }
+.opt-odds { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--accent); }
+
+/* ---------------------------------------------------------------- 슬립 */
+.slip { position: sticky; top: 82px; }
+.slip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.slip-info { flex: 1; min-width: 0; font-size: 13px; }
+.slip-info strong { display: block; }
+.slip-stake { width: 96px; text-align: right; padding: 7px 9px; font-size: 13px; }
+.slip-x { padding: 6px 10px; font-size: 15px; line-height: 1; }
+.slip-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.slip-total strong { color: var(--text); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  .board-grid { grid-template-columns: minmax(0, 1fr); }
+  .slip { position: static; }
+}
+
 footer.site {
   border-top: 1px solid var(--line);
   margin-top: 40px;
