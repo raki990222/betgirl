@@ -1,4 +1,25 @@
+/* 기본 테마 = 라이트. 다크는 <html data-theme="dark"> 로 전환 */
 :root {
+  --bg: #f5f6fa;
+  --panel: #ffffff;
+  --panel-2: #f0f2f7;
+  --line: #e1e5ee;
+  --text: #14171f;
+  --muted: #656d80;
+  --accent: #e0316f;
+  --accent-soft: rgba(224, 49, 111, 0.1);
+  --win: #10804f;
+  --lose: #cf3535;
+  --pending: #9a6c0d;
+  --void: #656d80;
+  --glow: rgba(224, 49, 111, 0.08);
+  --header-bg: rgba(255, 255, 255, 0.8);
+  --radius: 14px;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
   --bg: #0b0d12;
   --panel: #12151d;
   --panel-2: #171b25;
@@ -11,8 +32,9 @@
   --lose: #ff5c5c;
   --pending: #f0b429;
   --void: #8b93a7;
-  --radius: 14px;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  --glow: rgba(255, 77, 141, 0.14);
+  --header-bg: rgba(11, 13, 18, 0.75);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -20,7 +42,7 @@
 body {
   margin: 0;
   background:
-    radial-gradient(1200px 600px at 50% -200px, rgba(255, 77, 141, 0.14), transparent 60%),
+    radial-gradient(1200px 600px at 50% -200px, var(--glow), transparent 60%),
     var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo",
@@ -37,7 +59,7 @@ a:hover { text-decoration: underline; }
 /* ---------------------------------------------------------------- header */
 header.site {
   border-bottom: 1px solid var(--line);
-  background: rgba(11, 13, 18, 0.75);
+  background: var(--header-bg);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
@@ -60,6 +82,24 @@ header.site .wrap {
 header.site nav { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
 header.site nav a { color: var(--muted); }
 header.site nav a:hover, header.site nav a.on { color: var(--text); text-decoration: none; }
+
+/* 테마 토글 */
+button.theme-toggle {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+button.theme-toggle:hover { filter: none; color: var(--text); border-color: var(--accent); }
+button.theme-toggle .tt-icon { font-size: 13px; }
 
 /* ---------------------------------------------------------------- hero */
 .hero { padding: 44px 0 22px; }
@@ -131,9 +171,9 @@ tbody tr:hover { background: var(--panel-2); }
   border: 1px solid transparent;
   white-space: nowrap;
 }
-.badge.win     { color: var(--win);     border-color: rgba(53, 208, 127, 0.35); background: rgba(53, 208, 127, 0.1); }
-.badge.lose    { color: var(--lose);    border-color: rgba(255, 92, 92, 0.35);  background: rgba(255, 92, 92, 0.1); }
-.badge.pending { color: var(--pending); border-color: rgba(240, 180, 41, 0.35); background: rgba(240, 180, 41, 0.1); }
+.badge.win     { color: var(--win);     border-color: color-mix(in srgb, var(--win) 35%, transparent);     background: color-mix(in srgb, var(--win) 10%, transparent); }
+.badge.lose    { color: var(--lose);    border-color: color-mix(in srgb, var(--lose) 35%, transparent);    background: color-mix(in srgb, var(--lose) 10%, transparent); }
+.badge.pending { color: var(--pending); border-color: color-mix(in srgb, var(--pending) 35%, transparent); background: color-mix(in srgb, var(--pending) 10%, transparent); }
 .badge.void,
 .badge.cancel  { color: var(--void);    border-color: var(--line);              background: var(--panel-2); }
 
@@ -178,8 +218,8 @@ button.ghost { background: var(--panel-2); color: var(--text); border: 1px solid
   background: var(--panel-2);
 }
 .msg { padding: 10px 14px; border-radius: 9px; font-size: 13px; margin-bottom: 12px; }
-.msg.ok  { background: rgba(53, 208, 127, 0.1); color: var(--win); }
-.msg.err { background: rgba(255, 92, 92, 0.1); color: var(--lose); }
+.msg.ok  { background: color-mix(in srgb, var(--win) 10%, transparent);  color: var(--win); }
+.msg.err { background: color-mix(in srgb, var(--lose) 10%, transparent); color: var(--lose); }
 
 .empty { padding: 40px 18px; text-align: center; color: var(--muted); font-size: 14px; }
 
@@ -245,8 +285,8 @@ button.opt:disabled { opacity: 0.45; }
 .match.settled { opacity: 1; }
 .match.settled .opts { opacity: 0.9; }
 button.opt.won {
-  border-color: rgba(53, 208, 127, 0.55);
-  background: rgba(53, 208, 127, 0.1);
+  border-color: color-mix(in srgb, var(--win) 55%, transparent);
+  background: color-mix(in srgb, var(--win) 10%, transparent);
   opacity: 1 !important;
 }
 button.opt.won .opt-label, button.opt.won .opt-odds { color: var(--win); }
