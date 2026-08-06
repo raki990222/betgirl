@@ -7,9 +7,16 @@ let board = [];                 // betgirl_board 행
 let me = { session: null, profile: null, isOperator: false };
 const slip = new Map();         // event_id → { ev, opt, stake }
 
-const DEFAULT_STAKE = 100000;   // 벳 (1원=10벳 감각, 10만벳 = 1만원 느낌)
-const MIN_STAKE = 10000;
-const STAKE_STEP = 10000;
+// 무코드 가입(5,000벳)도 픽을 걸 수 있도록 최소 단위를 낮게 잡는다
+const DEFAULT_STAKE = 5000;
+const MIN_STAKE = 1000;
+const STAKE_STEP = 1000;
+
+/** ?invite=CODE 초대 링크로 들어오면 코드를 저장해 가입·참가 등록에 자동 채움 */
+const urlInvite = new URLSearchParams(location.search).get('invite');
+if (urlInvite && /^[A-Za-z0-9]{4,16}$/.test(urlInvite)) {
+  localStorage.setItem('betgirl_invite', urlInvite.toUpperCase());
+}
 
 /* ------------------------------------------------------------------ 시각 */
 const startLabel = (ts) => {
@@ -64,16 +71,17 @@ function renderAccount() {
               <input id="authPw2" type="password" autocomplete="new-password" minlength="8" />
             </div>
             <div class="field" style="margin:0" id="authInviteField" hidden>
-              <label for="authInvite">초대 코드</label>
-              <input id="authInvite" maxlength="16" placeholder="예: 3F9A2C1B"
+              <label for="authInvite">초대 코드 (선택)</label>
+              <input id="authInvite" maxlength="16" placeholder="있으면 20,000벳"
                      style="text-transform:uppercase" autocomplete="off" />
             </div>
             <div class="field" style="margin:0"><button type="submit" style="width:100%" id="authSubmit">로그인</button></div>
           </form>
         </div>
         <div class="note" id="authNote">
-          참여 순서: ① 이메일 가입 → ② 확인 메일 클릭 → ③ 로그인 → ④ 참가자 이름 + <strong>초대 코드</strong>로
-          참가 등록(웰컴벳 지급). 가입 때 코드를 입력해두면 ④에서 자동으로 채워집니다.
+          참여 순서: ① 이메일 가입 → ② 확인 메일 클릭 → ③ 로그인 → ④ 참가 등록.
+          가입 벳: 코드 없이 <strong>5,000벳</strong>, 초대 코드가 있으면 <strong>20,000벳</strong>
+          (초대한 친구도 10,000벳). 가입 때 코드를 입력해두면 ④에서 자동으로 채워집니다.
           구경만 하실 거면 로그인 없이 <a href="/ledger">공개 원장</a>을 보세요.
         </div>
       </section>`;
@@ -135,7 +143,7 @@ function renderAccount() {
           <div id="handleMsg"></div>
           <p class="dim" style="margin-top:0">
             참가자 이름은 원장에 공개되며 <strong>한 번 정하면 바꿀 수 없습니다.</strong>
-            등록에는 운영자에게 받은 <strong>초대 코드</strong>가 필요하고, 등록 즉시 1,000,000벳이 지급됩니다.
+            초대 코드가 있으면 <strong>20,000벳</strong>, 없이 등록하면 <strong>5,000벳</strong>이 지급됩니다.
             누가 누구를 초대했는지는 투명성을 위해 공개됩니다.
           </p>
           <form id="handleForm" class="row" style="align-items:end">
@@ -144,8 +152,8 @@ function renderAccount() {
               <input id="handle" maxlength="20" required placeholder="예: 지연" />
             </div>
             <div class="field" style="margin:0">
-              <label for="inviteCode">초대 코드</label>
-              <input id="inviteCode" maxlength="16" required placeholder="예: 3F9A2C1B"
+              <label for="inviteCode">초대 코드 (선택)</label>
+              <input id="inviteCode" maxlength="16" placeholder="있으면 20,000벳"
                      style="text-transform:uppercase" autocomplete="off" />
             </div>
             <div class="field" style="margin:0"><button type="submit" style="width:100%">참가 등록</button></div>
@@ -163,7 +171,7 @@ function renderAccount() {
       btn.disabled = true;
       const { error } = await sb.rpc('betgirl_join', {
         p_handle: $('#handle').value.trim(),
-        p_invite_code: $('#inviteCode').value.trim(),
+        p_invite_code: $('#inviteCode').value.trim() || null,
       });
       btn.disabled = false;
       if (error) {
@@ -183,11 +191,87 @@ function renderAccount() {
       <span><strong>${esc(me.profile.handle)}</strong> 님으로 픽을 등록합니다.</span>
       ${me.isOperator ? '<span class="badge void">운영자</span>' : ''}
       <span class="spacer" style="margin-left:auto"></span>
+      <button class="ghost" id="inviteOpen" style="padding:5px 12px;font-size:13px">친구 초대 +10,000벳</button>
       <a class="balance" href="/ledger#wallet=${encodeURIComponent(me.profile.handle)}"
          title="소지금 내역 보기">소지금 <strong id="balanceVal">…</strong></a>
-    </div>`;
+    </div>
+    <section class="panel" id="invitePanel" hidden>
+      <div class="panel-head"><h2>친구 초대</h2>
+        <div class="spacer"></div>
+        <button id="inviteMake">초대 링크 만들기</button>
+      </div>
+      <div style="padding:0 18px">
+        <div id="myInviteMsg" style="margin-top:14px"></div>
+        <p class="dim">
+          친구가 이 링크로 참가 등록하면 친구는 <strong>20,000벳</strong>, 나는 <strong>10,000벳</strong>을 받습니다.
+          미사용 코드는 5장까지 보유할 수 있고, 초대 관계는 공개됩니다.
+        </p>
+      </div>
+      <div id="myInvites"></div>
+    </section>`;
   refreshBalance();
+
+  $('#inviteOpen').addEventListener('click', () => {
+    const p = $('#invitePanel');
+    p.hidden = !p.hidden;
+    if (!p.hidden) loadMyInvites();
+  });
+
+  $('#inviteMake').addEventListener('click', async () => {
+    const btn = $('#inviteMake');
+    btn.disabled = true;
+    const { data, error } = await sb.rpc('betgirl_issue_invite', { p_memo: null });
+    btn.disabled = false;
+    if (error) {
+      $('#myInviteMsg').innerHTML = `<div class="msg err">${esc(error.message)}</div>`;
+      return;
+    }
+    $('#myInviteMsg').innerHTML = `<div class="msg ok">초대 링크가 생성되었습니다. 아래에서 복사하세요.</div>`;
+    loadMyInvites();
+  });
 }
+
+async function loadMyInvites() {
+  const box = document.querySelector('#myInvites');
+  const { data, error } = await sb
+    .from('betgirl_invites')
+    .select('code,created_at,used_by,used_at')
+    .eq('issuer', me.session.user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error || !data?.length) {
+    box.innerHTML = `<div class="empty">${error ? esc(error.message) : '아직 만든 초대가 없습니다.'}</div>`;
+    return;
+  }
+
+  box.innerHTML = data
+    .map((i) => {
+      const link = `${location.origin}/?invite=${i.code}`;
+      return `<div class="slip-row">
+        <div class="slip-info">
+          <strong class="hash" style="font-size:13px">${esc(i.code)}</strong>
+          <div class="dim">${i.used_at ? `사용됨 · ${esc(kstShort(i.used_at))} · +10,000벳 지급` : esc(link)}</div>
+        </div>
+        ${i.used_at
+          ? '<span class="badge win">완료</span>'
+          : `<button class="ghost" data-copy="${esc(link)}">링크 복사</button>`}
+      </div>`;
+    })
+    .join('');
+}
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-copy]');
+  if (!btn) return;
+  try {
+    await navigator.clipboard.writeText(btn.dataset.copy);
+    btn.textContent = '복사됨!';
+    setTimeout(() => (btn.textContent = '링크 복사'), 1500);
+  } catch {
+    prompt('복사가 차단되었습니다. 직접 복사하세요:', btn.dataset.copy);
+  }
+});
 
 async function refreshBalance() {
   const el = document.querySelector('#balanceVal');
