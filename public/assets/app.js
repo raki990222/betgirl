@@ -73,6 +73,7 @@ async function sha256Hex(text) {
  */
 async function verifyChain(rows, canonicalFn, kind) {
   const problems = [];
+  const hashes = [];
   let prev = ZERO;
 
   for (const row of rows) {
@@ -88,8 +89,42 @@ async function verifyChain(rows, canonicalFn, kind) {
       problems.push({ kind, seq: row.seq, reason: '해시가 일치하지 않습니다' });
     }
     prev = row.row_hash;
+    hashes.push(row.row_hash);
   }
-  return { count: rows.length, tip: prev === ZERO ? null : prev, problems };
+  return { count: rows.length, tip: prev === ZERO ? null : prev, hashes, problems };
+}
+
+/**
+ * 외부 앵커 저장소(GitHub)의 최신 앵커와 현재 체인을 대조한다.
+ * 앵커 시점의 행 개수 위치에서 해시가 일치하면, 그 시점 이후 원장이
+ * "추가만" 되었음이 증명된다 (재구축·소급 수정 시 불일치).
+ */
+export async function checkAnchor(betsHashes, settleHashes) {
+  const url = (window.BETGIRL_CONFIG || {}).ANCHOR_RAW_URL;
+  if (!url) return { state: 'unconfigured' };
+
+  let text;
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return { state: 'unavailable' };
+    text = (await res.text()).trim();
+  } catch {
+    return { state: 'unavailable' };
+  }
+  if (!text) return { state: 'unavailable' };
+
+  let a;
+  try {
+    a = JSON.parse(text.split('\n').pop());
+  } catch {
+    return { state: 'unavailable' };
+  }
+
+  const at = (chain, hashes) =>
+    chain.rows === 0 || (chain.rows <= hashes.length && hashes[chain.rows - 1] === chain.tip);
+
+  const ok = at(a.bets, betsHashes) && at(a.settlements, settleHashes);
+  return { state: ok ? 'ok' : 'mismatch', at: a.at, bets: a.bets, settlements: a.settlements };
 }
 
 /** 베팅·정산 두 체인을 모두 검증한다. */

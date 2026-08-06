@@ -1,5 +1,5 @@
 // betgirl — 공개 원장 화면
-import { sb, initNav, selectAll, verifyLedger, won, signedWon, pct, kst, esc, safeUrl, STATUS_LABEL } from './app.js';
+import { sb, initNav, selectAll, verifyLedger, checkAnchor, won, signedWon, pct, kst, esc, safeUrl, STATUS_LABEL } from './app.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -20,6 +20,34 @@ async function load() {
   fillBettorFilter();
   renderLedger();
   await loadWallet();
+  await renderSla();
+}
+
+/* ------------------------------------------------------------- 정산 SLA 지표 */
+async function renderSla() {
+  const { data } = await sb
+    .from('betgirl_board')
+    .select('start_at,result_at,result_code')
+    .eq('status', 'settled')
+    .not('result_at', 'is', null)
+    .limit(500);
+  if (!data?.length) return;
+
+  const hours = data
+    .map((e) => (new Date(e.result_at) - new Date(e.start_at)) / 3600000)
+    .filter((h) => h >= 0);
+  if (!hours.length) return;
+
+  const avg = hours.reduce((a, b) => a + b, 0) / hours.length;
+  const max = Math.max(...hours);
+  document.querySelector('#summary').insertAdjacentHTML(
+    'beforeend',
+    `<div class="stat">
+      <div class="label">평균 정산 소요</div>
+      <div class="value">${avg.toFixed(1)}시간</div>
+      <div class="sub">경기 시작→확정 (최장 ${max.toFixed(1)}h) · 원칙: 공식 기재 후 1시간 내</div>
+    </div>`
+  );
 }
 
 /* ------------------------------------------------------------- 소지금 내역 */
@@ -235,10 +263,20 @@ async function runVerify() {
   try {
     const r = await verifyLedger();
     if (r.ok) {
+      const anchor = await checkAnchor(r.bets.hashes, r.settlements.hashes);
+      const anchorLine =
+        anchor.state === 'ok'
+          ? `<div style="margin-top:6px;color:var(--win)">외부 앵커 일치 — ${esc(kst(anchor.at))} GitHub에 게시된 체인 지문과 현재 원장이 일치합니다.</div>`
+          : anchor.state === 'mismatch'
+            ? `<div style="margin-top:6px;color:var(--lose)">⚠️ 외부 앵커 불일치 — ${esc(kst(anchor.at))} 앵커와 원장이 어긋납니다. 원장이 재구축되었을 수 있습니다.</div>`
+            : anchor.state === 'unavailable'
+              ? `<div class="dim" style="margin-top:6px">외부 앵커를 불러오지 못했습니다 (아직 게시 전이거나 네트워크 문제).</div>`
+              : '';
       out.innerHTML = `<span style="color:var(--win)">무결성 확인됨</span> —
         베팅 ${r.bets.count}건 · 정산 ${r.settlements.count}건의 SHA-256 체인을 이 브라우저에서 재계산했고 전부 일치했습니다.
         ${r.bets.tip ? `<div class="hash" style="margin-top:6px">베팅 체인 최종 해시 ${esc(r.bets.tip)}</div>` : ''}
-        ${r.settlements.tip ? `<div class="hash">정산 체인 최종 해시 ${esc(r.settlements.tip)}</div>` : ''}`;
+        ${r.settlements.tip ? `<div class="hash">정산 체인 최종 해시 ${esc(r.settlements.tip)}</div>` : ''}
+        ${anchorLine}`;
     } else {
       out.innerHTML =
         `<span style="color:var(--lose)">불일치 ${r.problems.length}건이 발견되었습니다.</span><ul>` +

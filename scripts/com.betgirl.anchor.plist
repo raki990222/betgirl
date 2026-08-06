@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.betgirl.anchor</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Library/Frameworks/Python.framework/Versions/3.14/bin/python3</string>
+    <string>/Users/cizion/betgirl/scripts/anchor.py</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>12</integer><key>Minute</key><integer>20</integer></dict>
+  <key>StandardOutPath</key><string>/Users/cizion/betgirl/logs/anchor.log</string>
+  <key>StandardErrorPath</key><string>/Users/cizion/betgirl/logs/anchor.log</string>
+</dict>
+</plist>

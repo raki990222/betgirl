@@ -159,6 +159,7 @@
         <p class="dim" style="margin-top:0">
           경기 하나를 골라 결과를 확정하면 그 경기의 <strong>모든 미정산 픽이 한 번에</strong> 적중/미적중으로
           정산되고 적중 픽의 벳이 참가자 소지금으로 돌아갑니다. 경기 시작 전에는 확정할 수 없습니다.
+          <strong>운영 원칙: 공식 홈페이지에 결과가 기재되면 1시간 내 정산.</strong> 증빙 URL은 필수입니다.
         </p>
         <form id="evSettleForm">
           <div class="row">
@@ -171,8 +172,8 @@
               <select id="se_winner" required></select>
             </div>
             <div class="field">
-              <label for="se_proof">결과 증빙 URL</label>
-              <input id="se_proof" type="url" placeholder="공식 결과 페이지 https://…" />
+              <label for="se_proof">결과 증빙 URL * (공식 결과 페이지)</label>
+              <input id="se_proof" type="url" required placeholder="네이버·KBO 공홈 결과 https://…" />
             </div>
           </div>
           <button type="submit">결과 확정 · 일괄 정산</button>

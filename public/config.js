@@ -7,4 +7,6 @@ window.BETGIRL_CONFIG = {
   SITE_NAME: 'betgirl',
   // 화면에 표시할 단위 — 사이트 포인트 '벳' (현금 아님, 1원=10벳 감각)
   CURRENCY: '벳',
+  // 체인 앵커 저장소 (매일 tip 해시가 게시됨). 무결성 검증이 이 파일과 대조한다.
+  ANCHOR_RAW_URL: 'https://raw.githubusercontent.com/raki990222/betgirl-anchor/main/anchors.jsonl',
 };

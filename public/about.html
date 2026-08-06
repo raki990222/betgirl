@@ -43,7 +43,8 @@
         <li><strong style="color:var(--text)">추가만 가능합니다.</strong> 베팅과 정산은 각각 추가 전용 테이블에 쌓이며, 데이터베이스 트리거가 UPDATE·DELETE를 거부합니다.</li>
         <li><strong style="color:var(--text)">결과는 베팅과 분리해 기록합니다.</strong> 베팅 행에는 결과 칸이 아예 없습니다. 결과는 나중에 별도 정산 행으로 붙습니다. 그래서 “결과를 보고 베팅 내용을 고치는” 일이 구조적으로 불가능합니다.</li>
         <li><strong style="color:var(--text)">정정도 공개됩니다.</strong> 잘못 입력한 건은 지우지 않고 <em>취소(cancel)</em> 정산으로 남긴 뒤 새 행을 추가합니다.</li>
-        <li><strong style="color:var(--text)">증빙을 붙입니다.</strong> betman 구매번호와 구매·정산 화면 캡처를 함께 남깁니다.</li>
+        <li><strong style="color:var(--text)">정산에는 증빙이 필수입니다.</strong> 모든 결과 확정에는 네이버·KBO 공식 홈페이지 등 공식 결과 페이지 링크가 붙습니다. 증빙 없는 정산은 시스템이 거부합니다. 정산은 공식 기록 기재 후 <strong style="color:var(--text)">1시간 내</strong>를 원칙으로 합니다.</li>
+        <li><strong style="color:var(--text)">체인 지문을 외부에 게시합니다.</strong> 원장 체인의 최종 해시가 매일 <a href="https://github.com/raki990222/betgirl-anchor" target="_blank" rel="noopener noreferrer">공개 앵커 저장소</a>와 OpenTimestamps(비트코인 체인)에 기록됩니다. 운영자가 원장을 통째로 재구축해도 과거 앵커와 어긋나 드러납니다.</li>
       </ol>
     </div>
   </section>
