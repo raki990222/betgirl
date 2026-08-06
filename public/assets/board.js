@@ -259,7 +259,9 @@ function matchCard(e) {
   const picked = slip.get(e.id);
   const opts = Array.isArray(e.options) ? e.options : [];
 
-  const settled = e.status === 'settled';
+  // 결과가 기록된 경우만 '결과 확정'으로 취급한다 (구버전 RPC 가 결과 없이 settled 만
+  // 남긴 행이 있으면 마감 상태로만 표시)
+  const settled = e.status === 'settled' && !!e.result_code;
   const cancelled = settled && e.result_code === 'CANCEL';
   const winOpt = settled && !cancelled ? opts.find((o) => o.code === e.result_code) : null;
 
