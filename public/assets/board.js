@@ -111,7 +111,8 @@ function renderAccount() {
       <span><strong>${esc(me.profile.handle)}</strong> 님으로 픽을 등록합니다.</span>
       ${me.isOperator ? '<span class="badge void">운영자</span>' : ''}
       <span class="spacer" style="margin-left:auto"></span>
-      <span class="balance">소지금 <strong id="balanceVal">…</strong></span>
+      <a class="balance" href="/ledger#wallet=${encodeURIComponent(me.profile.handle)}"
+         title="소지금 내역 보기">소지금 <strong id="balanceVal">…</strong></a>
     </div>`;
   refreshBalance();
 }

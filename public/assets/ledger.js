@@ -19,6 +19,81 @@ async function load() {
   await renderStats();
   fillBettorFilter();
   renderLedger();
+  await loadWallet();
+}
+
+/* ------------------------------------------------------------- 소지금 내역 */
+async function loadWallet() {
+  const { data: handles, error } = await sb
+    .from('betgirl_balances')
+    .select('handle')
+    .order('handle');
+
+  const sel = $('#wHandle');
+  if (error || !handles?.length) {
+    sel.innerHTML = '<option value="">참가자 없음</option>';
+    return;
+  }
+  sel.innerHTML = handles
+    .map((h) => `<option value="${esc(h.handle)}">${esc(h.handle)}</option>`)
+    .join('');
+
+  // /ledger#wallet=핸들 로 진입하면 해당 참가자를 미리 선택하고 스크롤한다.
+  const m = location.hash.match(/^#wallet(?:=(.*))?$/);
+  if (m) {
+    const target = m[1] ? decodeURIComponent(m[1]) : null;
+    if (target && handles.some((h) => h.handle === target)) sel.value = target;
+    document.querySelector('#walletPanel').scrollIntoView({ block: 'start' });
+  }
+
+  renderWallet();
+}
+
+async function renderWallet() {
+  const handle = $('#wHandle').value;
+  const tb = $('#walletTbl tbody');
+  if (!handle) return;
+
+  const { data, error } = await sb
+    .from('betgirl_wallet_history')
+    .select('kind,at,label,delta')
+    .eq('handle', handle)
+    .order('at', { ascending: true })
+    .limit(1000);
+
+  if (error) {
+    tb.innerHTML = `<tr><td colspan="4" class="empty">내역을 불러오지 못했습니다: ${esc(error.message)}</td></tr>`;
+    return;
+  }
+  if (!data.length) {
+    tb.innerHTML = `<tr><td colspan="4" class="empty">내역이 없습니다.</td></tr>`;
+    $('#walletNote').textContent = `${handle} 님의 내역이 없습니다.`;
+    return;
+  }
+
+  let bal = 0;
+  const rows = data.map((r) => {
+    bal += Number(r.delta);
+    return { ...r, bal };
+  });
+
+  tb.innerHTML = rows
+    .slice()
+    .reverse()
+    .map((r) => {
+      const d = Number(r.delta);
+      const color = d > 0 ? 'var(--win)' : d < 0 ? 'var(--lose)' : 'var(--muted)';
+      return `<tr>
+        <td>${esc(kst(r.at))}</td>
+        <td>${esc(r.label)}</td>
+        <td class="num" style="color:${color}">${signedWon(d)}</td>
+        <td class="num">${won(r.bal)}</td>
+      </tr>`;
+    })
+    .join('');
+
+  $('#walletNote').textContent =
+    `${handle} 님 현재 소지금 ${won(bal)} — 위 내역의 합계이며, 전부 공개 원장에서 파생됩니다.`;
 }
 
 /* ---------------------------------------------------------------- 요약 카드 */
@@ -180,6 +255,7 @@ async function runVerify() {
 $('#verifyBtn').addEventListener('click', runVerify);
 ['#fBettor', '#fStatus'].forEach((s) => $(s).addEventListener('change', renderLedger));
 $('#fQuery').addEventListener('input', renderLedger);
+$('#wHandle').addEventListener('change', renderWallet);
 
 initNav('/ledger');
 load();
