@@ -51,9 +51,11 @@
           <div class="spacer"></div>
           <div class="filters">
             <select id="fRound"><option value="">회차 전체</option></select>
-            <label style="margin:0;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap">
-              <input type="checkbox" id="fOpen" checked style="width:auto" /> 등록 가능만
-            </label>
+            <select id="fView">
+              <option value="">전체</option>
+              <option value="open">등록 가능</option>
+              <option value="done">결과 확정</option>
+            </select>
           </div>
         </div>
         <div id="matches"><div class="empty">불러오는 중…</div></div>

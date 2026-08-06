@@ -21,6 +21,12 @@ const startLabel = (ts) => {
   });
 };
 
+const kstShort = (ts) =>
+  new Date(ts).toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
+  });
+
 const untilLabel = (ts) => {
   const ms = new Date(ts) - Date.now();
   if (ms <= 0) return '마감';
@@ -153,11 +159,12 @@ async function loadBoard() {
 
 function renderMatches() {
   const round = $('#fRound').value;
-  const openOnly = $('#fOpen').checked;
+  const view = $('#fView').value;
 
   const list = board.filter((e) => {
     if (round && e.round_key !== round) return false;
-    if (openOnly && !e.open_for_picks) return false;
+    if (view === 'open' && !e.open_for_picks) return false;
+    if (view === 'done' && e.status !== 'settled') return false;
     return true;
   });
 
@@ -186,27 +193,48 @@ function matchCard(e) {
   const picked = slip.get(e.id);
   const opts = Array.isArray(e.options) ? e.options : [];
 
+  const settled = e.status === 'settled';
+  const cancelled = settled && e.result_code === 'CANCEL';
+  const winOpt = settled && !cancelled ? opts.find((o) => o.code === e.result_code) : null;
+
   const buttons = opts
     .map((o) => {
       const on = picked && picked.opt.code === o.code;
-      return `<button class="opt${on ? ' on' : ''}" data-event="${e.id}" data-code="${esc(o.code)}"
+      const won_ = winOpt && winOpt.code === o.code;
+      return `<button class="opt${on ? ' on' : ''}${won_ ? ' won' : ''}${settled && !won_ ? ' lost' : ''}"
+                data-event="${e.id}" data-code="${esc(o.code)}"
                 ${e.open_for_picks ? '' : 'disabled'}>
-        <span class="opt-label">${esc(o.label)}</span>
+        <span class="opt-label">${won_ ? '✓ ' : ''}${esc(o.label)}</span>
         <span class="opt-odds">${Number(o.odds).toFixed(2)}</span>
       </button>`;
     })
     .join('');
 
+  const badge = settled
+    ? cancelled
+      ? '<span class="badge void">경기 취소</span>'
+      : '<span class="badge win">결과 확정</span>'
+    : `<span class="badge ${e.open_for_picks ? 'pending' : 'void'}">${esc(untilLabel(e.start_at))}</span>`;
+
+  const resultLine = settled
+    ? `<div class="match-result">
+         결과: <strong>${esc(cancelled ? '경기 취소 — 전 픽 원금 반환' : (winOpt?.label ?? e.result_code))}</strong>
+         ${e.result_at ? `<span class="dim"> · ${esc(kstShort(e.result_at))} 확정</span>` : ''}
+         ${safeUrl(e.result_proof_url) ? ` · <a href="${esc(safeUrl(e.result_proof_url))}" target="_blank" rel="noopener noreferrer">결과 증빙</a>` : ''}
+       </div>`
+    : '';
+
   return `
-    <article class="match${e.open_for_picks ? '' : ' closed'}">
+    <article class="match${e.open_for_picks ? '' : ' closed'}${settled ? ' settled' : ''}">
       <div class="match-top">
         <span class="dim">${esc(e.league)} · ${esc(e.market)}</span>
         <span class="spacer"></span>
         <span class="dim">${esc(startLabel(e.start_at))}</span>
-        <span class="badge ${e.open_for_picks ? 'pending' : 'void'}">${esc(untilLabel(e.start_at))}</span>
+        ${badge}
       </div>
       <div class="match-teams">${esc(e.home)} <span class="dim">vs</span> ${esc(e.away)}</div>
       <div class="opts">${buttons}</div>
+      ${resultLine}
       <div class="match-foot dim">
         등록된 픽 ${e.pick_count}건 · 합계 ${won(e.staked)}
         ${safeUrl(e.official_url) ? ` · <a href="${esc(safeUrl(e.official_url))}" target="_blank" rel="noopener noreferrer">공식 정보</a>` : ''}
@@ -352,7 +380,7 @@ $('#clearSlip').addEventListener('click', () => {
 
 $('#submitSlip').addEventListener('click', submitSlip);
 $('#fRound').addEventListener('change', renderMatches);
-$('#fOpen').addEventListener('change', renderMatches);
+$('#fView').addEventListener('change', renderMatches);
 
 /* ------------------------------------------------------------------ 시작 */
 (async () => {

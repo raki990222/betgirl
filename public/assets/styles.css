@@ -242,6 +242,25 @@ button.opt {
 button.opt:hover:not(:disabled) { border-color: var(--accent); filter: none; }
 button.opt.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
 button.opt:disabled { opacity: 0.45; }
+.match.settled { opacity: 1; }
+.match.settled .opts { opacity: 0.9; }
+button.opt.won {
+  border-color: rgba(53, 208, 127, 0.55);
+  background: rgba(53, 208, 127, 0.1);
+  opacity: 1 !important;
+}
+button.opt.won .opt-label, button.opt.won .opt-odds { color: var(--win); }
+button.opt.lost { opacity: 0.35 !important; }
+.match-result {
+  margin-top: 9px;
+  padding: 8px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.match-result strong { color: var(--text); }
 .opt-label { flex: 1; font-size: 14px; }
 .opt-odds { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--accent); }
 

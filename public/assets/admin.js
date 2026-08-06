@@ -133,8 +133,11 @@ async function loadEvents() {
         <td>${esc(e.away)} <span class="dim">@</span> ${esc(e.home)}</td>
         <td>${esc(kst(e.start_at))}</td>
         <td class="num">${e.pick_count}</td>
-        <td><span class="badge ${e.open_for_picks ? 'pending' : 'void'}">${
-          e.open_for_picks ? '등록 가능' : esc(e.status === 'open' ? '시작됨' : e.status)
+        <td><span class="badge ${e.open_for_picks ? 'pending' : e.status === 'settled' ? 'win' : 'void'}">${
+          e.open_for_picks ? '등록 가능'
+          : e.status === 'settled' ? '정산 완료'
+          : e.status === 'closed' ? '마감'
+          : '시작됨'
         }</span></td>
         <td>${
           e.status === 'open'
