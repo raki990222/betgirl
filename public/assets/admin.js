@@ -44,6 +44,8 @@ async function gate() {
   loadPending();
   loadEvents();
   loadSettleEvents();
+  loadInvites();
+  loadRedemptions();
 }
 
 $('#loginForm').addEventListener('submit', async (e) => {
@@ -361,6 +363,124 @@ $('#settleForm').addEventListener('submit', async (e) => {
   $('#settled_at').value = nowLocal();
   loadPending();
 });
+
+/* ------------------------------------------------------------------ 초대 코드 */
+async function loadInvites() {
+  const { data, error } = await sb
+    .from('betgirl_invites')
+    .select('code,memo,created_at,used_by,used_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  const tb = $('#invitesTbl tbody');
+  if (error) {
+    $('#invitesNote').textContent = '초대 코드 조회 실패: ' + error.message;
+    return;
+  }
+  if (!data.length) {
+    tb.innerHTML = '<tr><td colspan="4" class="empty">발급된 초대 코드가 없습니다.</td></tr>';
+    $('#invitesNote').textContent = '';
+    return;
+  }
+  tb.innerHTML = data
+    .map(
+      (i) => `<tr>
+        <td class="hash" style="font-size:13px">${esc(i.code)}</td>
+        <td class="dim">${esc(i.memo ?? '—')}</td>
+        <td class="dim">${esc(kst(i.created_at))}</td>
+        <td>${i.used_at
+          ? `<span class="badge win">사용됨</span> <span class="dim">${esc(kst(i.used_at))}</span>`
+          : '<span class="badge pending">미사용</span>'}</td>
+      </tr>`
+    )
+    .join('');
+  const unused = data.filter((i) => !i.used_at).length;
+  $('#invitesNote').textContent = `총 ${data.length}장 · 미사용 ${unused}장`;
+}
+
+$('#issueInvite').addEventListener('click', async () => {
+  const memo = prompt('메모 (누구에게 줄 코드인지, 선택):') ?? '';
+  const btn = $('#issueInvite');
+  btn.disabled = true;
+  const { data, error } = await sb.rpc('betgirl_issue_invite', { p_memo: memo.trim() || null });
+  btn.disabled = false;
+  if (error) return msg('#inviteMsg', '발급 실패: ' + error.message, 'err');
+  msg('#inviteMsg', `발급 완료 — 코드: ${data}`, 'ok');
+  loadInvites();
+});
+
+$('#reloadInvites').addEventListener('click', loadInvites);
+
+/* ------------------------------------------------------------------ 교환 처리 */
+async function loadRedemptions() {
+  const { data, error } = await sb
+    .from('betgirl_redemptions')
+    .select('seq,kind,handle,item,cost,request_seq,created_at')
+    .order('seq', { ascending: true })
+    .limit(1000);
+
+  const tb = $('#redeemTbl tbody');
+  if (error) {
+    $('#redeemNote').textContent = '교환 목록 조회 실패: ' + error.message;
+    return;
+  }
+
+  const resolved = new Set(
+    data.filter((r) => r.kind !== 'request').map((r) => r.request_seq)
+  );
+  const pending = data.filter((r) => r.kind === 'request' && !resolved.has(r.seq));
+
+  if (!pending.length) {
+    tb.innerHTML = '<tr><td colspan="6" class="empty">처리 대기 중인 교환 신청이 없습니다.</td></tr>';
+    $('#redeemNote').textContent = `누적 신청 ${data.filter((r) => r.kind === 'request').length}건 · 대기 0건`;
+    return;
+  }
+
+  tb.innerHTML = pending
+    .map(
+      (r) => `<tr>
+        <td class="dim">${r.seq}</td>
+        <td><strong>${esc(r.handle)}</strong></td>
+        <td>${esc(r.item)}</td>
+        <td class="num">${won(r.cost)}</td>
+        <td class="dim">${esc(kst(r.created_at))}</td>
+        <td>
+          <button class="ghost" data-fulfill="${r.seq}">완료</button>
+          <button class="ghost" data-reject="${r.seq}">반려</button>
+        </td>
+      </tr>`
+    )
+    .join('');
+  $('#redeemNote').textContent = `대기 ${pending.length}건`;
+}
+
+$('#redeemTbl').addEventListener('click', async (e) => {
+  const fulfillBtn = e.target.closest('[data-fulfill]');
+  const rejectBtn = e.target.closest('[data-reject]');
+  if (!fulfillBtn && !rejectBtn) return;
+
+  const seq = Number((fulfillBtn ?? rejectBtn).dataset[fulfillBtn ? 'fulfill' : 'reject']);
+  let payload;
+  if (fulfillBtn) {
+    const proof = prompt('발송 증빙 URL (기프티콘 발송 캡처 등):') ?? '';
+    if (!confirm(`#${seq} 교환을 완료 처리합니다. 되돌릴 수 없습니다.`)) return;
+    payload = { kind: 'fulfill', request_seq: seq, proof_url: proof.trim() || null };
+  } else {
+    const note = prompt('반려 사유 (공개됩니다):') ?? '';
+    if (!confirm(`#${seq} 교환을 반려하고 벳을 환급합니다. 되돌릴 수 없습니다.`)) return;
+    payload = { kind: 'reject', request_seq: seq, note: note.trim() || null };
+  }
+
+  // guard 트리거가 신청 내용을 복사하지만 NOT NULL 제약을 위해 자리값을 보낸다
+  const { error } = await sb.from('betgirl_redemptions').insert({
+    handle: '-', item: '-', cost: 1, ...payload,
+  });
+  if (error) return msg('#redeemMsg', '처리 실패: ' + error.message, 'err');
+  msg('#redeemMsg', `#${seq} 처리 완료`, 'ok');
+  loadRedemptions();
+});
+
+$('#reloadRedemptions').addEventListener('click', loadRedemptions);
 
 initNav('/admin');
 gate();

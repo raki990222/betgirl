@@ -43,7 +43,11 @@ function renderAccount() {
   if (!me.session) {
     el.innerHTML = `
       <section class="panel">
-        <div class="panel-head"><h2>픽을 등록하려면 로그인하세요</h2></div>
+        <div class="panel-head">
+          <h2 id="authTitle">픽을 등록하려면 로그인하세요</h2>
+          <div class="spacer"></div>
+          <button class="ghost" id="authToggle">계정 만들기</button>
+        </div>
         <div style="padding:18px">
           <div id="authMsg"></div>
           <form id="authForm" class="row" style="align-items:end">
@@ -53,20 +57,44 @@ function renderAccount() {
             </div>
             <div class="field" style="margin:0">
               <label for="authPw">비밀번호</label>
-              <input id="authPw" type="password" autocomplete="current-password" required />
+              <input id="authPw" type="password" autocomplete="current-password" required minlength="8" />
             </div>
-            <div class="field" style="margin:0"><button type="submit" style="width:100%">로그인</button></div>
+            <div class="field" style="margin:0"><button type="submit" style="width:100%" id="authSubmit">로그인</button></div>
           </form>
         </div>
-        <div class="note">계정은 운영자가 발급합니다. 구경만 하실 거면 로그인 없이 <a href="/ledger">공개 원장</a>을 보세요.</div>
+        <div class="note" id="authNote">
+          픽 등록에는 <strong>초대 코드</strong>가 필요합니다 (가입 후 참가 등록 단계에서 입력).
+          구경만 하실 거면 로그인 없이 <a href="/ledger">공개 원장</a>을 보세요.
+        </div>
       </section>`;
+
+    let signupMode = false;
+    $('#authToggle').addEventListener('click', () => {
+      signupMode = !signupMode;
+      $('#authTitle').textContent = signupMode ? '계정 만들기' : '픽을 등록하려면 로그인하세요';
+      $('#authSubmit').textContent = signupMode ? '가입 (확인 메일 발송)' : '로그인';
+      $('#authToggle').textContent = signupMode ? '로그인으로' : '계정 만들기';
+      $('#authMsg').innerHTML = '';
+    });
 
     $('#authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const { error } = await sb.auth.signInWithPassword({
-        email: $('#authEmail').value.trim(),
-        password: $('#authPw').value,
-      });
+      const email = $('#authEmail').value.trim();
+      const password = $('#authPw').value;
+      $('#authMsg').innerHTML = '';
+
+      if (signupMode) {
+        const { error } = await sb.auth.signUp({
+          email, password,
+          options: { emailRedirectTo: location.origin + '/' },
+        });
+        $('#authMsg').innerHTML = error
+          ? `<div class="msg err">${esc(error.message)}</div>`
+          : `<div class="msg ok">확인 메일을 보냈습니다. 메일의 링크를 누른 뒤 이 페이지에서 로그인하세요.</div>`;
+        return;
+      }
+
+      const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
         $('#authMsg').innerHTML = `<div class="msg err">${esc(error.message)}</div>`;
         return;
@@ -79,28 +107,38 @@ function renderAccount() {
   if (!me.profile) {
     el.innerHTML = `
       <section class="panel">
-        <div class="panel-head"><h2>참가자 이름 정하기</h2></div>
+        <div class="panel-head"><h2>참가 등록</h2></div>
         <div style="padding:18px">
           <div id="handleMsg"></div>
           <p class="dim" style="margin-top:0">
-            원장에 공개될 이름입니다. <strong>한 번 정하면 바꿀 수 없습니다</strong> — 과거 기록과 어긋나기 때문입니다.
+            참가자 이름은 원장에 공개되며 <strong>한 번 정하면 바꿀 수 없습니다.</strong>
+            등록에는 운영자에게 받은 <strong>초대 코드</strong>가 필요하고, 등록 즉시 1,000,000벳이 지급됩니다.
+            누가 누구를 초대했는지는 투명성을 위해 공개됩니다.
           </p>
           <form id="handleForm" class="row" style="align-items:end">
             <div class="field" style="margin:0">
               <label for="handle">참가자 이름 (20자 이내)</label>
               <input id="handle" maxlength="20" required placeholder="예: 지연" />
             </div>
-            <div class="field" style="margin:0"><button type="submit" style="width:100%">확정</button></div>
+            <div class="field" style="margin:0">
+              <label for="inviteCode">초대 코드</label>
+              <input id="inviteCode" maxlength="16" required placeholder="예: 3F9A2C1B"
+                     style="text-transform:uppercase" autocomplete="off" />
+            </div>
+            <div class="field" style="margin:0"><button type="submit" style="width:100%">참가 등록</button></div>
           </form>
         </div>
       </section>`;
 
     $('#handleForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const handle = $('#handle').value.trim();
-      const { error } = await sb
-        .from('betgirl_profiles')
-        .insert({ user_id: me.session.user.id, handle });
+      const btn = e.target.querySelector('button[type=submit]');
+      btn.disabled = true;
+      const { error } = await sb.rpc('betgirl_join', {
+        p_handle: $('#handle').value.trim(),
+        p_invite_code: $('#inviteCode').value.trim(),
+      });
+      btn.disabled = false;
       if (error) {
         const dup = error.code === '23505';
         $('#handleMsg').innerHTML =

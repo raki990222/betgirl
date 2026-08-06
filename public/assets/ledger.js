@@ -263,7 +263,12 @@ async function runVerify() {
   try {
     const r = await verifyLedger();
     if (r.ok) {
-      const anchor = await checkAnchor(r.bets.hashes, r.settlements.hashes);
+      const anchor = await checkAnchor({
+        bets: r.bets.hashes,
+        settlements: r.settlements.hashes,
+        credits: r.credits?.hashes,
+        redemptions: r.redemptions?.hashes,
+      });
       const anchorLine =
         anchor.state === 'ok'
           ? `<div style="margin-top:6px;color:var(--win)">외부 앵커 일치 — ${esc(kst(anchor.at))} GitHub에 게시된 체인 지문과 현재 원장이 일치합니다.</div>`
@@ -272,8 +277,11 @@ async function runVerify() {
             : anchor.state === 'unavailable'
               ? `<div class="dim" style="margin-top:6px">외부 앵커를 불러오지 못했습니다 (아직 게시 전이거나 네트워크 문제).</div>`
               : '';
+      const parts = [`베팅 ${r.bets.count}건`, `정산 ${r.settlements.count}건`];
+      if (r.credits) parts.push(`적립 ${r.credits.count}건`);
+      if (r.redemptions) parts.push(`교환 ${r.redemptions.count}건`);
       out.innerHTML = `<span style="color:var(--win)">무결성 확인됨</span> —
-        베팅 ${r.bets.count}건 · 정산 ${r.settlements.count}건의 SHA-256 체인을 이 브라우저에서 재계산했고 전부 일치했습니다.
+        ${parts.join(' · ')}의 SHA-256 체인을 이 브라우저에서 재계산했고 전부 일치했습니다.
         ${r.bets.tip ? `<div class="hash" style="margin-top:6px">베팅 체인 최종 해시 ${esc(r.bets.tip)}</div>` : ''}
         ${r.settlements.tip ? `<div class="hash">정산 체인 최종 해시 ${esc(r.settlements.tip)}</div>` : ''}
         ${anchorLine}`;

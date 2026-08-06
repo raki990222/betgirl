@@ -74,20 +74,32 @@ def git(*args: str) -> subprocess.CompletedProcess:
                           capture_output=True, text=True)
 
 
+def chain_state_optional(table: str) -> dict | None:
+    """011 이전(체인 컬럼 없음)에는 None — 앵커에서 제외."""
+    try:
+        return chain_state(table)
+    except Exception:
+        return None
+
+
 def main() -> int:
-    bets = chain_state("betgirl_bets")
-    settlements = chain_state("betgirl_settlements")
+    chains = {
+        "bets": chain_state("betgirl_bets"),
+        "settlements": chain_state("betgirl_settlements"),
+    }
+    for extra in ("credits", "redemptions"):
+        st = chain_state_optional(f"betgirl_{extra}")
+        if st is not None and (st["rows"] == 0 or st["tip"] is not None):
+            chains[extra] = st
 
     prev = last_anchor()
-    if prev and prev["bets"]["tip"] == bets["tip"] \
-            and prev["settlements"]["tip"] == settlements["tip"]:
+    if prev and all(prev.get(k, {}).get("tip") == v["tip"] for k, v in chains.items()):
         print("변화 없음 — 앵커 스킵")
         return 0
 
     record = {
         "at": datetime.now(KST).isoformat(timespec="seconds"),
-        "bets": bets,
-        "settlements": settlements,
+        **chains,
         "prev_anchor_sha256": sha256(json.dumps(prev, ensure_ascii=False, sort_keys=True)) if prev else None,
     }
     line = json.dumps(record, ensure_ascii=False, sort_keys=True)
@@ -95,8 +107,7 @@ def main() -> int:
     ANCHOR_DIR.mkdir(exist_ok=True)
     with ANCHOR_FILE.open("a") as f:
         f.write(line + "\n")
-    print(f"앵커 기록: bets {bets['rows']}행 tip={str(bets['tip'])[:12]}… "
-          f"/ settlements {settlements['rows']}행")
+    print("앵커 기록: " + " / ".join(f"{k} {v['rows']}행" for k, v in chains.items()))
 
     # OpenTimestamps (선택): ots 가 설치되어 있으면 스냅샷 스탬프
     day = datetime.now(KST).strftime("%Y%m%d")
@@ -125,7 +136,8 @@ def main() -> int:
 
     git("add", "-A")
     git("-c", "user.name=betgirl-anchor", "-c", "user.email=raki@cizion.com",
-        "commit", "-m", f"anchor {record['at']} bets={bets['rows']} settlements={settlements['rows']}")
+        "commit", "-m",
+        f"anchor {record['at']} " + " ".join(f"{k}={v['rows']}" for k, v in chains.items()))
     push = git("push", "origin", "main")
     if push.returncode != 0:
         print(f"⚠️ push 실패 — 로컬 커밋은 보존됨, 다음 실행 때 재시도: {push.stderr.strip()[:200]}")

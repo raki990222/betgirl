@@ -312,6 +312,57 @@
       <div class="note" id="pendingNote"></div>
     </section>
 
+    <!-- 초대 코드 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>5. 초대 코드</h2>
+        <div class="spacer"></div>
+        <button class="ghost" id="reloadInvites">새로고침</button>
+        <button id="issueInvite">초대 코드 발급</button>
+      </div>
+      <div style="padding:0 18px">
+        <div id="inviteMsg" style="margin-top:14px"></div>
+        <p class="dim">
+          참가 등록(웰컴벳 1,000,000 지급)에는 초대 코드 1장이 필요합니다. 코드는 1회용이고,
+          누가 누구를 초대했는지는 공개됩니다. 미사용 코드는 발급자와 운영자만 볼 수 있습니다.
+        </p>
+      </div>
+      <div class="tbl-scroll">
+        <table id="invitesTbl">
+          <thead>
+            <tr><th>코드</th><th>메모</th><th>발급</th><th>사용</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="note" id="invitesNote"></div>
+    </section>
+
+    <!-- 교환 처리 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>6. 벳 교환 처리</h2>
+        <div class="spacer"></div>
+        <button class="ghost" id="reloadRedemptions">새로고침</button>
+      </div>
+      <div style="padding:0 18px">
+        <div id="redeemMsg" style="margin-top:14px"></div>
+        <p class="dim">
+          교환 신청은 신청 시점에 소지금에서 차감되어 있습니다. <strong>완료</strong>는 기프티콘 발송 후
+          증빙과 함께, <strong>반려</strong>는 벳을 자동 환급합니다. 모든 처리가 공개 원장에 남습니다.
+        </p>
+      </div>
+      <div class="tbl-scroll">
+        <table id="redeemTbl">
+          <thead>
+            <tr><th>#</th><th>참가자</th><th>상품</th><th class="num">벳</th><th>신청 시각</th><th>처리</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="note" id="redeemNote"></div>
+    </section>
+
   </div>
 </main>
 

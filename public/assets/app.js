@@ -62,6 +62,15 @@ export const canonicalBet = (b) =>
 export const canonicalSettlement = (s) =>
   ['settle', String(s.bet_seq), s.result, String(s.payout), isoSec(s.settled_at)].join('|');
 
+export const canonicalCredit = (c) =>
+  ['credit', c.handle, String(c.amount), c.reason, isoSec(c.created_at)].join('|');
+
+export const canonicalRedemption = (r) =>
+  [
+    'redeem', r.kind, r.handle, r.item, String(r.cost),
+    r.request_seq == null ? '' : String(r.request_seq), isoSec(r.created_at),
+  ].join('|');
+
 async function sha256Hex(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -99,7 +108,7 @@ async function verifyChain(rows, canonicalFn, kind) {
  * 앵커 시점의 행 개수 위치에서 해시가 일치하면, 그 시점 이후 원장이
  * "추가만" 되었음이 증명된다 (재구축·소급 수정 시 불일치).
  */
-export async function checkAnchor(betsHashes, settleHashes) {
+export async function checkAnchor(hashMap) {
   const url = (window.BETGIRL_CONFIG || {}).ANCHOR_RAW_URL;
   if (!url) return { state: 'unconfigured' };
 
@@ -123,26 +132,50 @@ export async function checkAnchor(betsHashes, settleHashes) {
   const at = (chain, hashes) =>
     chain.rows === 0 || (chain.rows <= hashes.length && hashes[chain.rows - 1] === chain.tip);
 
-  const ok = at(a.bets, betsHashes) && at(a.settlements, settleHashes);
-  return { state: ok ? 'ok' : 'mismatch', at: a.at, bets: a.bets, settlements: a.settlements };
+  // 앵커에 기록된 체인은 전부 대조한다 (앵커에 없는 체인만 생략 — 구버전 앵커 호환).
+  // 앵커가 "이 체인에 N행이 있었다"고 주장하는데 브라우저가 그 체인을 읽지 못했다면,
+  // 원장이 재구축·롤백됐을 수 있으므로 일치가 아니라 불일치로 처리한다.
+  let ok = true;
+  for (const key of ['bets', 'settlements', 'credits', 'redemptions']) {
+    if (!a[key]) continue;
+    if (!hashMap[key]) {
+      if (a[key].rows > 0) ok = false;
+      continue;
+    }
+    ok = ok && at(a[key], hashMap[key]);
+  }
+  return { state: ok ? 'ok' : 'mismatch', at: a.at };
 }
 
-/** 베팅·정산 두 체인을 모두 검증한다. */
+/** 베팅·정산·적립·교환 네 체인을 모두 검증한다. */
 export async function verifyLedger() {
   const [bets, settles] = await Promise.all([
     selectAll('betgirl_bets', 'seq,bettor,event_key,match_label,market,pick,stake,odds,placed_at,ticket_no,prev_hash,canonical,row_hash'),
     selectAll('betgirl_settlements', 'seq,bet_seq,result,payout,settled_at,prev_hash,canonical,row_hash'),
   ]);
 
+  // 적립·교환 체인은 011 마이그레이션 이후에만 존재한다. 컬럼/테이블 자체가 없을 때만
+  // 건너뛰고, 행이 있는데 해시가 비어 있으면 "건너뛰기"가 아니라 위변조 의심으로 보고한다
+  // (조용한 스킵은 검증을 무력화하는 뒷문이 된다).
+  let credits = null;
+  let redeems = null;
+  try {
+    credits = await selectAll('betgirl_credits', 'seq,handle,amount,reason,created_at,prev_hash,canonical,row_hash');
+  } catch { credits = null; }
+  try {
+    redeems = await selectAll('betgirl_redemptions', 'seq,kind,handle,item,cost,request_seq,created_at,prev_hash,canonical,row_hash');
+  } catch { redeems = null; }
+
   const b = await verifyChain(bets, canonicalBet, '베팅');
   const s = await verifyChain(settles, canonicalSettlement, '정산');
+  const c = credits ? await verifyChain(credits, canonicalCredit, '적립') : null;
+  const r = redeems ? await verifyChain(redeems, canonicalRedemption, '교환') : null;
 
-  return {
-    ok: b.problems.length === 0 && s.problems.length === 0,
-    bets: b,
-    settlements: s,
-    problems: [...b.problems, ...s.problems],
-  };
+  const problems = [
+    ...b.problems, ...s.problems,
+    ...(c ? c.problems : []), ...(r ? r.problems : []),
+  ];
+  return { ok: problems.length === 0, bets: b, settlements: s, credits: c, redemptions: r, problems };
 }
 
 /* ------------------------------------------------------------------ 공통 내비 */
