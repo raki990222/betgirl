@@ -59,11 +59,21 @@ function renderAccount() {
               <label for="authPw">비밀번호</label>
               <input id="authPw" type="password" autocomplete="current-password" required minlength="8" />
             </div>
+            <div class="field" style="margin:0" id="authPw2Field" hidden>
+              <label for="authPw2">비밀번호 확인</label>
+              <input id="authPw2" type="password" autocomplete="new-password" minlength="8" />
+            </div>
+            <div class="field" style="margin:0" id="authInviteField" hidden>
+              <label for="authInvite">초대 코드</label>
+              <input id="authInvite" maxlength="16" placeholder="예: 3F9A2C1B"
+                     style="text-transform:uppercase" autocomplete="off" />
+            </div>
             <div class="field" style="margin:0"><button type="submit" style="width:100%" id="authSubmit">로그인</button></div>
           </form>
         </div>
         <div class="note" id="authNote">
-          픽 등록에는 <strong>초대 코드</strong>가 필요합니다 (가입 후 참가 등록 단계에서 입력).
+          참여 순서: ① 이메일 가입 → ② 확인 메일 클릭 → ③ 로그인 → ④ 참가자 이름 + <strong>초대 코드</strong>로
+          참가 등록(웰컴벳 지급). 가입 때 코드를 입력해두면 ④에서 자동으로 채워집니다.
           구경만 하실 거면 로그인 없이 <a href="/ledger">공개 원장</a>을 보세요.
         </div>
       </section>`;
@@ -74,6 +84,10 @@ function renderAccount() {
       $('#authTitle').textContent = signupMode ? '계정 만들기' : '픽을 등록하려면 로그인하세요';
       $('#authSubmit').textContent = signupMode ? '가입 (확인 메일 발송)' : '로그인';
       $('#authToggle').textContent = signupMode ? '로그인으로' : '계정 만들기';
+      $('#authPw2Field').hidden = !signupMode;
+      $('#authInviteField').hidden = !signupMode;
+      $('#authPw2').required = signupMode;
+      $('#authPw').autocomplete = signupMode ? 'new-password' : 'current-password';
       $('#authMsg').innerHTML = '';
     });
 
@@ -84,13 +98,22 @@ function renderAccount() {
       $('#authMsg').innerHTML = '';
 
       if (signupMode) {
+        if (password !== $('#authPw2').value) {
+          $('#authMsg').innerHTML = `<div class="msg err">비밀번호가 서로 다릅니다. 다시 확인해주세요.</div>`;
+          return;
+        }
+        // 초대 코드는 가입이 아니라 참가 등록에서 소모된다. 여기서 받아두면
+        // 로그인 후 참가 등록 폼에 자동으로 채워진다.
+        const invite = $('#authInvite').value.trim().toUpperCase();
+        if (invite) localStorage.setItem('betgirl_invite', invite);
+
         const { error } = await sb.auth.signUp({
           email, password,
           options: { emailRedirectTo: location.origin + '/' },
         });
         $('#authMsg').innerHTML = error
           ? `<div class="msg err">${esc(error.message)}</div>`
-          : `<div class="msg ok">확인 메일을 보냈습니다. 메일의 링크를 누른 뒤 이 페이지에서 로그인하세요.</div>`;
+          : `<div class="msg ok">확인 메일을 보냈습니다. 메일의 링크를 누른 뒤 이 페이지에서 로그인하세요.${invite ? ' 초대 코드는 저장해뒀습니다.' : ''}</div>`;
         return;
       }
 
@@ -130,6 +153,10 @@ function renderAccount() {
         </div>
       </section>`;
 
+    // 가입 때 입력해둔 초대 코드가 있으면 자동으로 채운다
+    const savedInvite = localStorage.getItem('betgirl_invite');
+    if (savedInvite) $('#inviteCode').value = savedInvite;
+
     $('#handleForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = e.target.querySelector('button[type=submit]');
@@ -145,6 +172,7 @@ function renderAccount() {
           `<div class="msg err">${esc(dup ? '이미 사용 중인 이름입니다.' : error.message)}</div>`;
         return;
       }
+      localStorage.removeItem('betgirl_invite');
       location.reload();
     });
     return;
