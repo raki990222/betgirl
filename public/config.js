@@ -5,6 +5,6 @@ window.BETGIRL_CONFIG = {
   SUPABASE_ANON_KEY:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjcGlqa3pkeGFsc3dtbmxqYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MDg5NDksImV4cCI6MjEwMTQ4NDk0OX0.w9MAXZorH9-VunRq-Z6_VH7pWGUYLSYlNsvfmSWkYwE',
   SITE_NAME: 'betgirl',
-  // 화면에 표시할 통화 기호
-  CURRENCY: '원',
+  // 화면에 표시할 단위 — 사이트 포인트 '벳' (현금 아님, 1원=10벳 감각)
+  CURRENCY: '벳',
 };

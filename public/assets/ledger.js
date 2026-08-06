@@ -1,5 +1,5 @@
 // betgirl — 공개 원장 화면
-import { sb, initNav, selectAll, verifyLedger, won, signedWon, pct, kst, esc, STATUS_LABEL } from './app.js';
+import { sb, initNav, selectAll, verifyLedger, won, signedWon, pct, kst, esc, safeUrl, STATUS_LABEL } from './app.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -122,11 +122,13 @@ function renderLedger() {
     .map((r) => {
       const net = r.net === null ? null : Number(r.net);
       const color = net === null ? 'var(--muted)' : net > 0 ? 'var(--win)' : net < 0 ? 'var(--lose)' : 'inherit';
-      const proof = r.proof_url
-        ? `<a href="${esc(r.proof_url)}" target="_blank" rel="noopener noreferrer">구매</a>`
+      const proofUrl = safeUrl(r.proof_url);
+      const sproofUrl = safeUrl(r.settle_proof_url);
+      const proof = proofUrl
+        ? `<a href="${esc(proofUrl)}" target="_blank" rel="noopener noreferrer">구매</a>`
         : '<span class="dim">—</span>';
-      const sproof = r.settle_proof_url
-        ? ` · <a href="${esc(r.settle_proof_url)}" target="_blank" rel="noopener noreferrer">정산</a>`
+      const sproof = sproofUrl
+        ? ` · <a href="${esc(sproofUrl)}" target="_blank" rel="noopener noreferrer">정산</a>`
         : '';
       return `<tr>
         <td class="dim">${r.seq}</td>

@@ -201,7 +201,10 @@ button.ghost { background: var(--panel-2); color: var(--text); border: 1px solid
   padding: 12px 18px;
   margin-bottom: 22px;
   font-size: 14px;
+  flex-wrap: wrap;
 }
+.balance { color: var(--muted); }
+.balance strong { color: var(--accent); font-variant-numeric: tabular-nums; }
 
 .round-head {
   padding: 12px 18px;

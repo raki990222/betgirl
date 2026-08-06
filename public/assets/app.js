@@ -30,6 +30,16 @@ export const kst = (ts) => {
   });
 };
 
+/** http(s) URL만 통과. 저장된 링크가 javascript: 등으로 오염돼도 렌더되지 않게 한다. */
+export const safeUrl = (u) => {
+  try {
+    const p = new URL(String(u));
+    return p.protocol === 'https:' || p.protocol === 'http:' ? p.href : null;
+  } catch {
+    return null;
+  }
+};
+
 export const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

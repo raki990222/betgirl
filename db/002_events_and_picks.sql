@@ -187,10 +187,11 @@ create trigger betgirl_bets_a_fill
   for each row execute function public.betgirl_fill_from_event();
 
 -- ---------------------------------------------------------------- 해시 체인 직렬화
--- 001의 체인 트리거는 "직전 행"을 SELECT 해서 prev_hash 를 만든다. 동시에 두 건이 들어오면
--- 둘 다 같은 prev_hash 를 집어 체인이 갈라질 수 있으므로 트랜잭션 단위 advisory lock 으로
--- 직렬화한다. (같은 이유로 클라이언트는 여러 픽을 한 번의 다중행 INSERT 로 보내면 안 된다 —
--- 같은 명령 안에서 먼저 삽입된 행은 뒤 행의 BEFORE 트리거에 보이지 않는다. 한 건씩 보낼 것.)
+-- 001의 체인 트리거는 "직전 행"을 SELECT 해서 prev_hash 를 만든다. 서로 다른 트랜잭션이
+-- 동시에 들어오면 둘 다 같은 prev_hash 를 집어 체인이 갈라질 수 있으므로 트랜잭션 단위
+-- advisory lock 으로 직렬화한다. (단일 다중행 INSERT 는 같은 명령 안에서 먼저 처리된 행이
+-- 뒤 행의 VOLATILE 트리거에 보이므로 체인이 유지되지만, 실패 건 개별 보고를 위해
+-- 클라이언트는 한 건씩 보낸다.)
 create or replace function public.betgirl_chain_bet()
 returns trigger
 language plpgsql

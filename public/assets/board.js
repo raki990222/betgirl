@@ -1,5 +1,5 @@
 // betgirl — 경기 보드 + 픽 등록
-import { sb, initNav, currentUser, won, esc } from './app.js';
+import { sb, initNav, currentUser, won, esc, safeUrl } from './app.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -7,7 +7,9 @@ let board = [];                 // betgirl_board 행
 let me = { session: null, profile: null, isOperator: false };
 const slip = new Map();         // event_id → { ev, opt, stake }
 
-const DEFAULT_STAKE = 10000;
+const DEFAULT_STAKE = 100000;   // 벳 (1원=10벳 감각, 10만벳 = 1만원 느낌)
+const MIN_STAKE = 10000;
+const STAKE_STEP = 10000;
 
 /* ------------------------------------------------------------------ 시각 */
 const startLabel = (ts) => {
@@ -108,7 +110,21 @@ function renderAccount() {
     <div class="whoami">
       <span><strong>${esc(me.profile.handle)}</strong> 님으로 픽을 등록합니다.</span>
       ${me.isOperator ? '<span class="badge void">운영자</span>' : ''}
+      <span class="spacer" style="margin-left:auto"></span>
+      <span class="balance">소지금 <strong id="balanceVal">…</strong></span>
     </div>`;
+  refreshBalance();
+}
+
+async function refreshBalance() {
+  const el = document.querySelector('#balanceVal');
+  if (!el || !me.profile) return;
+  const { data, error } = await sb
+    .from('betgirl_balances')
+    .select('balance')
+    .eq('handle', me.profile.handle)
+    .maybeSingle();
+  el.textContent = error || !data ? '—' : won(data.balance);
 }
 
 /* ------------------------------------------------------------------ 경기 */
@@ -188,11 +204,11 @@ function matchCard(e) {
         <span class="dim">${esc(startLabel(e.start_at))}</span>
         <span class="badge ${e.open_for_picks ? 'pending' : 'void'}">${esc(untilLabel(e.start_at))}</span>
       </div>
-      <div class="match-teams">${esc(e.away)} <span class="dim">@</span> ${esc(e.home)}</div>
+      <div class="match-teams">${esc(e.home)} <span class="dim">vs</span> ${esc(e.away)}</div>
       <div class="opts">${buttons}</div>
       <div class="match-foot dim">
         등록된 픽 ${e.pick_count}건 · 합계 ${won(e.staked)}
-        ${e.official_url ? ` · <a href="${esc(e.official_url)}" target="_blank" rel="noopener noreferrer">공식 정보</a>` : ''}
+        ${safeUrl(e.official_url) ? ` · <a href="${esc(safeUrl(e.official_url))}" target="_blank" rel="noopener noreferrer">공식 정보</a>` : ''}
       </div>
     </article>`;
 }
@@ -230,9 +246,9 @@ function renderSlip() {
       <div class="slip-row">
         <div class="slip-info">
           <strong>${esc(opt.label)}</strong>
-          <div class="dim">${esc(ev.away)} @ ${esc(ev.home)} · 배당 ${Number(opt.odds).toFixed(2)}</div>
+          <div class="dim">${esc(ev.home)} vs ${esc(ev.away)} · 배당 ${Number(opt.odds).toFixed(2)}</div>
         </div>
-        <input class="slip-stake" type="number" min="1000" step="1000" value="${stake}" data-event="${ev.id}" />
+        <input class="slip-stake" type="number" min="${MIN_STAKE}" step="${STAKE_STEP}" value="${stake}" data-event="${ev.id}" />
         <button class="slip-x ghost" data-remove="${ev.id}" aria-label="빼기">×</button>
       </div>`
     )
@@ -260,7 +276,7 @@ async function submitSlip() {
   const done = [];
   const failed = [];
 
-  // 해시 체인이 직전 행을 참조하므로 다중행 INSERT 로 보내지 않고 한 건씩 순차 등록한다.
+  // 한 건씩 순차 등록해 실패(잔고 부족·마감 등)를 픽별로 보고한다.
   for (const { ev, opt, stake } of entries) {
     const { data, error } = await sb
       .from('betgirl_bets')
@@ -288,6 +304,7 @@ async function submitSlip() {
   $('#slipMsg').innerHTML = parts.join('');
 
   await loadBoardRefresh();
+  refreshBalance();
   renderSlip();
   btn.disabled = false;
 }

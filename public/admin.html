@@ -145,9 +145,43 @@
       <div class="note" id="eventsNote"></div>
     </section>
 
+    <!-- 경기 결과 정산 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>2. 경기 결과 정산</h2>
+        <div class="spacer"></div>
+        <button class="ghost" id="reloadSettleEvents">새로고침</button>
+      </div>
+      <div style="padding:18px">
+        <div id="evSettleMsg"></div>
+        <p class="dim" style="margin-top:0">
+          경기 하나를 골라 결과를 확정하면 그 경기의 <strong>모든 미정산 픽이 한 번에</strong> 적중/미적중으로
+          정산되고 적중 픽의 벳이 참가자 소지금으로 돌아갑니다. 경기 시작 전에는 확정할 수 없습니다.
+        </p>
+        <form id="evSettleForm">
+          <div class="row">
+            <div class="field">
+              <label for="se_event">경기 *</label>
+              <select id="se_event" required></select>
+            </div>
+            <div class="field">
+              <label for="se_winner">결과 *</label>
+              <select id="se_winner" required></select>
+            </div>
+            <div class="field">
+              <label for="se_proof">결과 증빙 URL</label>
+              <input id="se_proof" type="url" placeholder="공식 결과 페이지 https://…" />
+            </div>
+          </div>
+          <button type="submit">결과 확정 · 일괄 정산</button>
+        </form>
+      </div>
+      <div class="note" id="evSettleNote"></div>
+    </section>
+
     <!-- 베팅 등록 -->
     <section class="panel">
-      <div class="panel-head"><h2>2. 베팅 수동 기록</h2></div>
+      <div class="panel-head"><h2>3. 베팅 수동 기록</h2></div>
       <div style="padding:18px">
         <div id="betMsg"></div>
         <form id="betForm">
@@ -195,7 +229,7 @@
               <input id="pick" required placeholder="예: 토트넘 승" />
             </div>
             <div class="field">
-              <label for="stake">베팅액 (원) *</label>
+              <label for="stake">베팅액 (벳) *</label>
               <input id="stake" type="number" min="1" step="1" required />
             </div>
             <div class="field">
@@ -229,7 +263,7 @@
     <!-- 정산 -->
     <section class="panel">
       <div class="panel-head">
-        <h2>3. 정산 입력</h2>
+        <h2>4. 개별 정산 (수동 기록용)</h2>
         <div class="spacer"></div>
         <button class="ghost" id="reloadPending">새로고침</button>
       </div>
@@ -251,7 +285,7 @@
               </select>
             </div>
             <div class="field">
-              <label for="payout">회수액 (원) *</label>
+              <label for="payout">회수액 (벳) *</label>
               <input id="payout" type="number" min="0" step="1" value="0" required />
             </div>
             <div class="field">

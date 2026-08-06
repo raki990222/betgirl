@@ -43,6 +43,7 @@ async function gate() {
   $('#ev_start').value ||= nowLocal().slice(0, 16);
   loadPending();
   loadEvents();
+  loadSettleEvents();
 }
 
 $('#loginForm').addEventListener('submit', async (e) => {
@@ -71,9 +72,10 @@ $('#eventForm').addEventListener('submit', async (e) => {
   const away = $('#ev_away').value.trim();
   const market = $('#ev_market').value;
 
+  // 표기 관행: 좌측(첫 번째)이 HOME
   const options = [
-    { code: 'AWAY', label: `${away} 승`, odds: Number($('#ev_odds_away').value) },
     { code: 'HOME', label: `${home} 승`, odds: Number($('#ev_odds_home').value) },
+    { code: 'AWAY', label: `${away} 승`, odds: Number($('#ev_odds_away').value) },
   ];
   if (market === '승무패' && Number($('#ev_odds_draw').value) >= 1) {
     options.splice(1, 0, { code: 'DRAW', label: '무승부', odds: Number($('#ev_odds_draw').value) });
@@ -159,6 +161,92 @@ $('#eventsTbl').addEventListener('click', async (e) => {
 });
 
 $('#reloadEvents').addEventListener('click', loadEvents);
+
+/* ------------------------------------------------------------ 경기 결과 정산 */
+let settleEvents = [];
+
+async function loadSettleEvents() {
+  const { data, error } = await sb
+    .from('betgirl_board')
+    .select('id,round_key,home,away,start_at,status,options,pick_count,open_for_picks')
+    .neq('status', 'settled')
+    .order('start_at', { ascending: true })
+    .limit(200);
+
+  if (error) {
+    $('#evSettleNote').textContent = '경기 목록 조회 실패: ' + error.message;
+    return;
+  }
+
+  settleEvents = data;
+  const sel = $('#se_event');
+  sel.innerHTML = data.length
+    ? data
+        .map((e) =>
+          `<option value="${e.id}">` +
+          esc(`#${e.id} ${e.home} vs ${e.away} · ${kst(e.start_at)} · 픽 ${e.pick_count}건${e.open_for_picks ? ' · 시작 전' : ''}`) +
+          '</option>'
+        )
+        .join('')
+    : '<option value="">정산할 경기가 없습니다</option>';
+
+  $('#evSettleNote').textContent =
+    `미정산 ${data.length}경기 · 시작 전 경기는 '경기 취소'만 가능합니다.`;
+  fillWinnerOptions();
+}
+
+function fillWinnerOptions() {
+  const ev = settleEvents.find((e) => e.id === Number($('#se_event').value));
+  const sel = $('#se_winner');
+  if (!ev) {
+    sel.innerHTML = '';
+    return;
+  }
+  const opts = Array.isArray(ev.options) ? ev.options : [];
+  sel.innerHTML =
+    opts.map((o) => `<option value="${esc(o.code)}">${esc(o.label)}</option>`).join('') +
+    '<option value="__cancel">경기 취소 (전 픽 원금 반환)</option>';
+}
+
+$('#se_event').addEventListener('change', fillWinnerOptions);
+$('#reloadSettleEvents').addEventListener('click', loadSettleEvents);
+
+$('#evSettleForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const eventId = Number($('#se_event').value);
+  const winner = $('#se_winner').value;
+  if (!eventId || !winner) return msg('#evSettleMsg', '경기와 결과를 선택하세요.', 'err');
+
+  const ev = settleEvents.find((x) => x.id === eventId);
+  const label = ev ? `${ev.home} vs ${ev.away}` : `#${eventId}`;
+  const resultLabel = $('#se_winner').selectedOptions[0]?.textContent ?? winner;
+  if (!confirm(`${label}\n결과: ${resultLabel}\n\n이 경기의 미정산 픽을 전부 정산합니다. 되돌릴 수 없습니다.`)) return;
+
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true;
+  msg('#evSettleMsg', '');
+
+  const { data, error } = await sb.rpc('betgirl_settle_event', {
+    p_event_id: eventId,
+    p_winner_code: winner === '__cancel' ? null : winner,
+    p_cancel: winner === '__cancel',
+    p_proof_url: $('#se_proof').value.trim() || null,
+  });
+
+  btn.disabled = false;
+  if (error) return msg('#evSettleMsg', '정산 실패: ' + error.message, 'err');
+
+  const r = Array.isArray(data) ? data[0] : data;
+  msg(
+    '#evSettleMsg',
+    `정산 완료 — ${r.settled_count}건 처리, 적중 ${r.win_count}건, 지급 ${won(r.total_payout)}`,
+    'ok'
+  );
+  $('#se_proof').value = '';
+  loadSettleEvents();
+  loadEvents();
+  loadPending();
+});
 
 /* ------------------------------------------------------------------ 베팅 */
 $('#betForm').addEventListener('submit', async (e) => {
