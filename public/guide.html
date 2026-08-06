@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>betgirl — 픽 등록 가이드</title>
+  <meta name="description" content="betgirl에서 계정을 만들고, 소지금 벳으로 경기에 픽을 등록하고, 정산과 무결성 검증까지 확인하는 방법을 단계별로 안내합니다." />
+  <meta property="og:title" content="betgirl — 픽 등록 가이드" />
+  <meta property="og:description" content="로그인부터 픽 등록, 정산 확인까지 단계별 안내." />
+  <meta property="og:type" content="website" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8789206403898951"
+          crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>" />
+  <style>
+    .step {
+      display: flex;
+      gap: 16px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .step:last-child { border-bottom: 0; }
+    .step-no {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+    .step-body h3 { margin: 4px 0 6px; font-size: 15px; }
+    .step-body p { margin: 0 0 6px; color: var(--muted); font-size: 14px; }
+    .step-body p strong { color: var(--text); }
+    .step-body .tip {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .faq-q { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+    .faq-q:last-child { border-bottom: 0; }
+    .faq-q h3 { margin: 0 0 6px; font-size: 14px; }
+    .faq-q p { margin: 0; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <span class="brand">bet<em>girl</em><span class="brand-sub">픽 등록 가이드</span></span>
+    <nav>
+      <a href="/">경기</a>
+      <a href="/ledger">원장</a>
+      <a href="/guide" class="on">가이드</a>
+      <a href="/about">규칙</a>
+      <a href="/admin">운영</a>
+      <a href="#" id="logout" hidden>로그아웃</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero">
+    <h1>픽 등록, 처음부터 끝까지</h1>
+    <p>
+      betgirl은 돈을 걸지 않습니다. 사이트 포인트 <strong>벳</strong>으로 경기 결과를 예측해 등록하고,
+      그 기록과 성적이 전부 공개되는 서비스입니다. 아래 순서대로 따라 하면 첫 픽 등록까지 3분이면 충분합니다.
+    </p>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>시작하기 전에</h2></div>
+    <div style="padding:14px 18px;color:var(--muted);font-size:14px">
+      <p style="margin:6px 0">
+        <strong style="color:var(--text)">벳(BET)이 뭔가요?</strong> —
+        betgirl 안에서만 쓰는 포인트입니다. 현금이 아니고, 충전도 환전도 되지 않습니다.
+        가입하면 <strong style="color:var(--text)">1,000,000벳</strong>이 자동 지급되고, 이 소지금 안에서만 픽을 걸 수 있습니다.
+        1만 벳을 1천원처럼 생각하면 감이 맞습니다. 적중하면 <em>베팅액 × 배당</em>만큼 소지금으로 돌아옵니다.
+      </p>
+      <p style="margin:6px 0">
+        <strong style="color:var(--text)">계정은 어떻게 만드나요?</strong> —
+        지금은 운영자가 발급합니다. 참여하고 싶으면 운영자에게 이메일 주소를 알려주세요.
+        구경(원장·성적 열람)은 로그인 없이 누구나 가능합니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>픽 등록 5단계</h2></div>
+
+    <div class="step">
+      <div class="step-no">1</div>
+      <div class="step-body">
+        <h3>로그인</h3>
+        <p><a href="/">경기 보드</a> 상단의 로그인 폼에 운영자에게 받은 이메일과 비밀번호를 입력합니다.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-no">2</div>
+      <div class="step-body">
+        <h3>참가자 이름 확정 (최초 1회)</h3>
+        <p>
+          처음 로그인하면 원장에 공개될 <strong>참가자 이름</strong>을 정합니다.
+          확정하는 순간 1,000,000벳이 지급되고, 화면 상단에 소지금이 표시됩니다.
+        </p>
+        <div class="tip">
+          ⚠️ 이름은 한 번 정하면 <strong>바꿀 수 없습니다.</strong> 과거 기록과 이름이 어긋나면
+          장부의 신뢰가 깨지기 때문에 시스템이 변경을 거부합니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-no">3</div>
+      <div class="step-body">
+        <h3>경기 고르고 픽 담기</h3>
+        <p>
+          경기 보드에서 예측할 경기의 배당 버튼을 누릅니다. 왼쪽이 <strong>홈팀</strong>, 오른쪽이 원정팀입니다.
+          누른 픽은 오른쪽 <strong>내 픽</strong> 슬립에 쌓이고, 경기마다 베팅액(벳)을 조절할 수 있습니다.
+        </p>
+        <p>같은 경기에는 한 방향, 한 번만 등록할 수 있습니다. 여러 경기를 한 번에 담는 건 자유입니다.</p>
+        <div class="tip">
+          ⏰ 픽은 <strong>경기 시작 전까지만</strong> 등록됩니다. 시작 시각이 지나면 버튼이 잠기고,
+          혹시 화면이 열려 있어도 서버가 등록을 거부합니다. 각 경기 카드에 마감까지 남은 시간이 표시됩니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-no">4</div>
+      <div class="step-body">
+        <h3>픽 등록</h3>
+        <p>
+          슬립 아래 <strong>픽 등록</strong> 버튼을 누르면 끝입니다. 등록 즉시 베팅액이 소지금에서 차감되고,
+          기록이 <a href="/ledger">공개 원장</a>에 나타납니다.
+        </p>
+        <div class="tip">
+          🔒 등록한 픽은 <strong>수정도 삭제도 되지 않습니다.</strong> 경기명·배당·시각은 여러분의 브라우저가 아니라
+          서버가 게시된 경기 정보에서 직접 채워 넣고, 등록 시각도 서버 시계로 기록됩니다.
+          "나중에 고치기"가 불가능한 것이 이 서비스의 핵심입니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-no">5</div>
+      <div class="step-body">
+        <h3>결과 확인과 정산</h3>
+        <p>
+          경기가 끝나면 운영자가 공식 결과를 확인하고 경기 단위로 일괄 정산합니다.
+          <a href="/ledger">원장</a>에서 내 픽이 <strong>미확정 → 적중/미적중</strong>으로 바뀌고,
+          적중이면 <em>베팅액 × 배당</em>이 소지금으로 돌아옵니다.
+        </p>
+        <p>
+          경기가 우천 취소되는 등 무효가 되면 전원 원금이 반환됩니다.
+          참가자별 누적 성적(적중률·수익률·순손익)은 원장 페이지 상단에서 언제든 볼 수 있습니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>기록을 믿어도 되나요?</h2></div>
+    <div style="padding:14px 18px;color:var(--muted);font-size:14px">
+      <p style="margin:6px 0">
+        믿지 않아도 됩니다 — 직접 확인할 수 있으니까요. 모든 기록은 저장되는 순간 앞 기록의 해시에
+        이어 붙는 <strong style="color:var(--text)">SHA-256 체인</strong>으로 봉인됩니다.
+        과거 기록을 하나라도 고치면 이후 모든 해시가 어긋나서 조작이 즉시 드러납니다.
+      </p>
+      <p style="margin:6px 0">
+        <a href="/ledger">원장</a>의 <strong style="color:var(--text)">무결성 검증</strong> 버튼을 누르면
+        서버를 믿지 않고 <em>여러분의 브라우저가</em> 전체 체인을 다시 계산해서 대조합니다.
+        자세한 원리는 <a href="/about">규칙</a> 페이지에 있습니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>자주 묻는 질문</h2></div>
+
+    <div class="faq-q">
+      <h3>Q. 벳을 현금으로 바꿀 수 있나요?</h3>
+      <p>아니요. 벳은 충전도 환전도 되지 않는 사이트 내부 포인트입니다. 추후 벳으로 소소한 상품을
+      교환하는 센터를 열 계획이지만, 현금 지급은 어떤 형태로도 없습니다.</p>
+    </div>
+
+    <div class="faq-q">
+      <h3>Q. 소지금을 다 잃으면 어떻게 되나요?</h3>
+      <p>소지금이 베팅액보다 적으면 픽 등록이 거부됩니다. 추가 지급 여부는 운영자 재량이고,
+      지급 내역도 전부 공개 기록으로 남습니다.</p>
+    </div>
+
+    <div class="faq-q">
+      <h3>Q. 잘못 등록했어요. 지워주실 수 있나요?</h3>
+      <p>지울 수 없습니다 — 운영자도 못 지웁니다. 데이터베이스 자체가 수정·삭제를 거부하도록 만들어져
+      있습니다. 명백한 오류라면 운영자가 그 픽을 '취소' 정산해서 원금을 돌려줄 수 있지만, 그 흔적도
+      원장에 그대로 공개됩니다.</p>
+    </div>
+
+    <div class="faq-q">
+      <h3>Q. 경기와 배당은 어디서 오나요?</h3>
+      <p>KBO 공식 일정 등 공식 출처의 실제 경기만 운영자가 게시합니다. 배당은 betgirl 운영자가 게시하는
+      값이며, 각 경기 카드의 '공식 정보' 링크에서 원본 일정을 확인할 수 있습니다.</p>
+    </div>
+
+    <div class="faq-q">
+      <h3>Q. 실제 스포츠토토를 사고 싶어요.</h3>
+      <p>대한민국에서 합법적인 체육진흥투표권 구매는 <strong>betman.co.kr</strong>(공식)에서만 하세요.
+      betgirl은 구매를 접수하거나 중개하지 않고, 금전을 일절 받지 않습니다. 만 19세 미만은 구매할 수 없으며,
+      도박 문제 상담은 국번 없이 1336입니다.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <strong>betgirl.site</strong> — 본 사이트는 베팅을 접수하거나 중개하지 않으며 금전을 수취하지 않습니다.
+    벳은 현금 가치가 없는 사이트 내부 포인트입니다. 도박 문제 상담 국번없이 <strong>1336</strong>.
+  </div>
+</footer>
+
+<script src="/config.js"></script>
+<script type="module">
+  import { initNav } from '/assets/app.js';
+  initNav('/guide');
+</script>
+</body>
+</html>
