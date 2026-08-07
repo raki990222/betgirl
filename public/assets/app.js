@@ -65,6 +65,13 @@ export const canonicalSettlement = (s) =>
 export const canonicalCredit = (c) =>
   ['credit', c.handle, String(c.amount), c.reason, isoSec(c.created_at)].join('|');
 
+export const canonicalDraw = (d) =>
+  [
+    'draw', d.handle, d.item, String(d.item_cost), d.mode, String(d.cost),
+    String(d.seed_seq), String(d.nonce), d.client_seed, d.roll,
+    d.win ? 'W' : 'L', isoSec(d.created_at),
+  ].join('|');
+
 export const canonicalRedemption = (r) =>
   [
     'redeem', r.kind, r.handle, r.item, String(r.cost),
@@ -136,7 +143,7 @@ export async function checkAnchor(hashMap) {
   // 앵커가 "이 체인에 N행이 있었다"고 주장하는데 브라우저가 그 체인을 읽지 못했다면,
   // 원장이 재구축·롤백됐을 수 있으므로 일치가 아니라 불일치로 처리한다.
   let ok = true;
-  for (const key of ['bets', 'settlements', 'credits', 'redemptions']) {
+  for (const key of ['bets', 'settlements', 'credits', 'redemptions', 'draws']) {
     if (!a[key]) continue;
     if (!hashMap[key]) {
       if (a[key].rows > 0) ok = false;
@@ -159,23 +166,31 @@ export async function verifyLedger() {
   // (조용한 스킵은 검증을 무력화하는 뒷문이 된다).
   let credits = null;
   let redeems = null;
+  let draws = null;
   try {
     credits = await selectAll('betgirl_credits', 'seq,handle,amount,reason,created_at,prev_hash,canonical,row_hash');
   } catch { credits = null; }
   try {
     redeems = await selectAll('betgirl_redemptions', 'seq,kind,handle,item,cost,request_seq,created_at,prev_hash,canonical,row_hash');
   } catch { redeems = null; }
+  try {
+    draws = await selectAll('betgirl_draws', 'seq,handle,item,item_cost,mode,cost,seed_seq,nonce,client_seed,roll,win,created_at,prev_hash,canonical,row_hash');
+  } catch { draws = null; }
 
   const b = await verifyChain(bets, canonicalBet, '베팅');
   const s = await verifyChain(settles, canonicalSettlement, '정산');
   const c = credits ? await verifyChain(credits, canonicalCredit, '적립') : null;
   const r = redeems ? await verifyChain(redeems, canonicalRedemption, '교환') : null;
+  const d = draws ? await verifyChain(draws, canonicalDraw, '추첨') : null;
 
   const problems = [
     ...b.problems, ...s.problems,
-    ...(c ? c.problems : []), ...(r ? r.problems : []),
+    ...(c ? c.problems : []), ...(r ? r.problems : []), ...(d ? d.problems : []),
   ];
-  return { ok: problems.length === 0, bets: b, settlements: s, credits: c, redemptions: r, problems };
+  return {
+    ok: problems.length === 0,
+    bets: b, settlements: s, credits: c, redemptions: r, draws: d, problems,
+  };
 }
 
 /* ------------------------------------------------------------------ 공통 내비 */

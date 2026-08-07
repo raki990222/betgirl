@@ -48,6 +48,7 @@ async function gate() {
   loadRedemptions();
   loadItems();
   loadRevenue();
+  loadSeeds();
 }
 
 $('#loginForm').addEventListener('submit', async (e) => {
@@ -563,6 +564,46 @@ $('#revForm').addEventListener('submit', async (e) => {
 });
 
 $('#reloadRevenue').addEventListener('click', loadRevenue);
+
+/* ------------------------------------------------------------------ 가차 시드 */
+async function loadSeeds() {
+  const { data, error } = await sb
+    .from('betgirl_gacha_commitments')
+    .select('seq,seed_hash,drawn_count,created_at,revealed_at')
+    .order('seq', { ascending: false })
+    .limit(20);
+  const el = $('#seedList');
+  if (error) return void ($('#seedNote').textContent = error.message);
+  el.innerHTML = data.length
+    ? data.map((s) => `<div class="slip-row">
+        <div class="slip-info">
+          <strong class="hash" style="font-size:12px">#${s.seq} ${esc(String(s.seed_hash).slice(0, 24))}…</strong>
+          <div class="dim">추첨 ${s.drawn_count}회 · ${esc(kst(s.created_at))}</div>
+        </div>
+        <span class="badge ${s.revealed_at ? 'win' : 'pending'}">${s.revealed_at ? '공개됨' : '진행 중'}</span>
+      </div>`).join('')
+    : '<div class="empty">발급된 시드가 없습니다. 새 시드를 발급하면 확률 도전이 열립니다.</div>';
+  $('#seedNote').textContent = data.some((s) => !s.revealed_at)
+    ? '진행 중 시드 있음 — 확률 도전 활성 상태'
+    : '진행 중 시드 없음 — 확률 도전 비활성 (새 시드 발급 필요)';
+}
+
+$('#newSeed').addEventListener('click', async () => {
+  const { data, error } = await sb.rpc('betgirl_gacha_new_seed');
+  if (error) return msg('#seedMsg', error.message, 'err');
+  msg('#seedMsg', `새 시드 커밋 완료 — 해시 ${String(data).slice(0, 24)}… (즉시 공개됨)`, 'ok');
+  loadSeeds();
+});
+
+$('#revealSeed').addEventListener('click', async () => {
+  if (!confirm('진행 중 시드를 공개(마감)합니다. 이후 해당 시드의 모든 추첨이 검증 가능해지고, 새 시드를 발급해야 확률 도전이 다시 열립니다.')) return;
+  const { error } = await sb.rpc('betgirl_gacha_reveal_seed');
+  if (error) return msg('#seedMsg', error.message, 'err');
+  msg('#seedMsg', '시드가 공개(마감)되었습니다. 새 시드를 발급하세요.', 'ok');
+  loadSeeds();
+});
+
+$('#reloadSeeds').addEventListener('click', loadSeeds);
 
 initNav('/admin');
 gate();

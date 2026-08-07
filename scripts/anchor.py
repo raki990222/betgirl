@@ -87,7 +87,7 @@ def main() -> int:
         "bets": chain_state("betgirl_bets"),
         "settlements": chain_state("betgirl_settlements"),
     }
-    for extra in ("credits", "redemptions"):
+    for extra in ("credits", "redemptions", "draws"):
         st = chain_state_optional(f"betgirl_{extra}")
         if st is not None and (st["rows"] == 0 or st["tip"] is not None):
             chains[extra] = st

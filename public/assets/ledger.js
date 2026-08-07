@@ -270,6 +270,7 @@ async function runVerify() {
         settlements: r.settlements.hashes,
         credits: r.credits?.hashes,
         redemptions: r.redemptions?.hashes,
+        draws: r.draws?.hashes,
       });
       const anchorLine =
         anchor.state === 'ok'
@@ -282,6 +283,7 @@ async function runVerify() {
       const parts = [`베팅 ${r.bets.count}건`, `정산 ${r.settlements.count}건`];
       if (r.credits) parts.push(`적립 ${r.credits.count}건`);
       if (r.redemptions) parts.push(`교환 ${r.redemptions.count}건`);
+      if (r.draws) parts.push(`추첨 ${r.draws.count}건`);
       out.innerHTML = `<span style="color:var(--win)">무결성 확인됨</span> —
         ${parts.join(' · ')}의 SHA-256 체인을 이 브라우저에서 재계산했고 전부 일치했습니다.
         ${r.bets.tip ? `<div class="hash" style="margin-top:6px">베팅 체인 최종 해시 ${esc(r.bets.tip)}</div>` : ''}

@@ -74,6 +74,25 @@
     </div>
   </section>
 
+  <section class="panel">
+    <div class="panel-head"><h2>확률 도전 · 공정성 (고지)</h2></div>
+    <div style="padding:14px 18px;color:var(--muted);font-size:14px">
+      <p style="margin:6px 0">
+        상품은 <strong style="color:var(--text)">확정 교환(100%)</strong> 외에
+        <strong style="color:var(--text)">도전 50%</strong>(상품가의 58%),
+        <strong style="color:var(--text)">도전 10%</strong>(상품가의 13.5%)로도 도전할 수 있습니다.
+        기대비용은 각각 상품가의 116%·135%로 확정 교환보다 비쌉니다 — 도전은 재미를 위한 선택지입니다.
+        미당첨 시 비용은 반환되지 않으며, 확률·비용 정책의 모든 변경 이력이 공개됩니다.
+      </p>
+      <p style="margin:6px 0">
+        추첨은 <strong style="color:var(--text)">커밋-리빌</strong> 방식입니다: 시드의 해시가 추첨 전에 공개되고,
+        결과 = SHA-256(시드:추첨번호:내가 보낸 난수)로 계산됩니다. 시드가 공개(마감)되면 아래 목록에서
+        누구나 모든 추첨을 재계산해 조작 여부를 검증할 수 있습니다. 추첨 기록은 해시 체인 원장으로 봉인·앵커링됩니다.
+      </p>
+    </div>
+    <div id="fairness"></div>
+  </section>
+
   <section class="panel" id="myPanel" hidden>
     <div class="panel-head"><h2>내 교환 내역</h2></div>
     <div class="tbl-scroll">
