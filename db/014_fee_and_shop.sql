@@ -30,6 +30,9 @@ create policy betgirl_fee_policy_op_insert
   on public.betgirl_fee_policy for insert to authenticated
   with check (public.betgirl_is_operator());
 
+grant select on public.betgirl_fee_policy to anon, authenticated;
+grant insert on public.betgirl_fee_policy to authenticated;
+
 insert into public.betgirl_fee_policy (rate, note)
 select 0.05, '초기 정책 — 적중 픽 정산 시 베팅액의 5% 수수료'
  where not exists (select 1 from public.betgirl_fee_policy);
