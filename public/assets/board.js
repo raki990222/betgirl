@@ -7,10 +7,10 @@ let board = [];                 // betgirl_board 행
 let me = { session: null, profile: null, isOperator: false };
 const slip = new Map();         // event_id → { ev, opt, stake }
 
-// 무코드 가입(5,000벳)도 픽을 걸 수 있도록 최소 단위를 낮게 잡는다
+// 무코드 가입(5,000벳)도 픽을 걸 수 있도록 최소 단위를 낮게 잡는다. 100벳 단위만 허용.
 const DEFAULT_STAKE = 5000;
 const MIN_STAKE = 1000;
-const STAKE_STEP = 1000;
+const STAKE_STEP = 100;
 
 /** ?invite=CODE 초대 링크로 들어오면 코드를 저장해 가입·참가 등록에 자동 채움 */
 const urlInvite = new URLSearchParams(location.search).get('invite');
@@ -454,6 +454,14 @@ async function submitSlip() {
   $('#slipMsg').innerHTML = '';
 
   const entries = [...slip.values()];
+  const invalid = entries.filter(({ stake }) => Number(stake) % 100 !== 0 || Number(stake) < MIN_STAKE);
+  if (invalid.length) {
+    $('#slipMsg').innerHTML =
+      `<div class="msg err">베팅은 최소 ${MIN_STAKE.toLocaleString('ko-KR')}벳, 100벳 단위로만 가능합니다.</div>`;
+    btn.disabled = false;
+    return;
+  }
+
   const done = [];
   const failed = [];
 
