@@ -244,7 +244,9 @@ function renderLedger() {
         <td class="num">${won(r.stake)}</td>
         <td class="num">${Number(r.odds).toFixed(2)}</td>
         <td><span class="badge ${esc(r.status)}">${esc(STATUS_LABEL[r.status] ?? r.status)}</span></td>
-        <td class="num">${r.status === 'pending' ? '<span class="dim">—</span>' : won(r.payout)}</td>
+        <td class="num">${r.status === 'pending' ? '<span class="dim">—</span>' : won(r.payout)}${
+          Number(r.fee) > 0 ? `<div class="dim" style="font-size:11px">수수료 −${won(r.fee)}</div>` : ''
+        }</td>
         <td class="num" style="color:${color}">${net === null ? '<span class="dim">—</span>' : signedWon(net)}</td>
         <td class="dim">${proof}${sproof}<div class="hash" title="${esc(r.row_hash)}">${esc(String(r.row_hash).slice(0, 10))}…</div></td>
       </tr>`;

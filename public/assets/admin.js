@@ -46,6 +46,8 @@ async function gate() {
   loadSettleEvents();
   loadInvites();
   loadRedemptions();
+  loadItems();
+  loadRevenue();
 }
 
 $('#loginForm').addEventListener('submit', async (e) => {
@@ -481,6 +483,86 @@ $('#redeemTbl').addEventListener('click', async (e) => {
 });
 
 $('#reloadRedemptions').addEventListener('click', loadRedemptions);
+
+/* ------------------------------------------------------------------ 상품 관리 */
+async function loadItems() {
+  const { data, error } = await sb
+    .from('betgirl_items').select('*').order('id', { ascending: false }).limit(200);
+  const tb = $('#itemsTbl tbody');
+  if (error) return void ($('#itemMsg').innerHTML = `<div class="msg err">${esc(error.message)}</div>`);
+  tb.innerHTML = data.length
+    ? data.map((i) => `<tr>
+        <td class="dim">${i.id}</td>
+        <td>${esc(i.name)}${i.note ? ` <span class="dim">${esc(i.note)}</span>` : ''}</td>
+        <td class="num">${won(i.cost)}</td>
+        <td class="num">${i.stock === null ? '∞' : i.stock}</td>
+        <td><span class="badge ${i.active ? 'win' : 'void'}">${i.active ? '판매 중' : '비활성'}</span></td>
+        <td><button class="ghost" data-toggle-item="${i.id}" data-active="${i.active}">${i.active ? '내리기' : '올리기'}</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="empty">등록된 상품이 없습니다.</td></tr>';
+}
+
+$('#itemForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const { error } = await sb.from('betgirl_items').insert({
+    name: $('#it_name').value.trim(),
+    cost: Number($('#it_cost').value),
+    stock: $('#it_stock').value === '' ? null : Number($('#it_stock').value),
+    note: $('#it_note').value.trim() || null,
+  });
+  if (error) return msg('#itemMsg', '등록 실패: ' + error.message, 'err');
+  msg('#itemMsg', '상품이 등록되었습니다.', 'ok');
+  ['#it_name', '#it_cost', '#it_stock', '#it_note'].forEach((s) => ($(s).value = ''));
+  loadItems();
+});
+
+$('#itemsTbl').addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-toggle-item]');
+  if (!btn) return;
+  const { error } = await sb
+    .from('betgirl_items')
+    .update({ active: btn.dataset.active !== 'true' })
+    .eq('id', Number(btn.dataset.toggleItem));
+  if (error) return msg('#itemMsg', error.message, 'err');
+  loadItems();
+});
+
+$('#reloadItems').addEventListener('click', loadItems);
+
+/* ------------------------------------------------------------------ 광고 수익 */
+async function loadRevenue() {
+  const { data, error } = await sb
+    .from('betgirl_revenue').select('*').order('seq', { ascending: false }).limit(100);
+  const tb = $('#revTbl tbody');
+  if (error) return void ($('#revNote').textContent = error.message);
+  tb.innerHTML = data.length
+    ? data.map((r) => `<tr>
+        <td class="dim">${r.seq}</td>
+        <td>${esc(r.at_date)}</td>
+        <td>${esc(r.source)}</td>
+        <td class="num">${Number(r.amount_krw).toLocaleString('ko-KR')}원</td>
+        <td class="dim">${r.proof_url ? `<a href="${esc(r.proof_url)}" target="_blank" rel="noopener noreferrer">증빙</a>` : '—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="empty">기록된 수익이 없습니다.</td></tr>';
+  const total = data.reduce((a, r) => a + Number(r.amount_krw), 0);
+  $('#revNote').textContent = `누적 ${total.toLocaleString('ko-KR')}원 — 교환소 재원 대차에 공개됩니다.`;
+}
+
+$('#revForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const { error } = await sb.from('betgirl_revenue').insert({
+    at_date: $('#rv_date').value,
+    source: $('#rv_source').value.trim(),
+    amount_krw: Number($('#rv_amount').value),
+    proof_url: $('#rv_proof').value.trim() || null,
+  });
+  if (error) return msg('#revMsg', '기록 실패: ' + error.message, 'err');
+  msg('#revMsg', '수익이 공개 원장에 기록되었습니다.', 'ok');
+  $('#rv_amount').value = '';
+  loadRevenue();
+});
+
+$('#reloadRevenue').addEventListener('click', loadRevenue);
 
 initNav('/admin');
 gate();

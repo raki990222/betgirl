@@ -17,6 +17,7 @@
     <nav>
       <a href="/">경기</a>
       <a href="/ledger">원장</a>
+      <a href="/shop">교환소</a>
       <a href="/guide">가이드</a>
       <a href="/about">규칙</a>
       <a href="/admin">운영</a>
@@ -361,6 +362,86 @@
         </table>
       </div>
       <div class="note" id="redeemNote"></div>
+    </section>
+
+    <!-- 상품 관리 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>7. 교환소 상품 관리</h2>
+        <div class="spacer"></div>
+        <button class="ghost" id="reloadItems">새로고침</button>
+      </div>
+      <div style="padding:18px">
+        <div id="itemMsg"></div>
+        <form id="itemForm" class="row" style="align-items:end">
+          <div class="field" style="margin:0">
+            <label for="it_name">상품명 *</label>
+            <input id="it_name" required placeholder="스타벅스 아메리카노 Tall" />
+          </div>
+          <div class="field" style="margin:0">
+            <label for="it_cost">필요 벳 *</label>
+            <input id="it_cost" type="number" min="100" step="100" required />
+          </div>
+          <div class="field" style="margin:0">
+            <label for="it_stock">수량 (비우면 무제한)</label>
+            <input id="it_stock" type="number" min="0" step="1" />
+          </div>
+          <div class="field" style="margin:0">
+            <label for="it_note">설명</label>
+            <input id="it_note" />
+          </div>
+          <div class="field" style="margin:0"><button type="submit">상품 등록</button></div>
+        </form>
+      </div>
+      <div class="tbl-scroll">
+        <table id="itemsTbl">
+          <thead><tr><th>#</th><th>상품</th><th class="num">벳</th><th class="num">수량</th><th>상태</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="note">가격(필요 벳)은 사전 고지 원칙에 따라 수정 대신 비활성 후 새 상품으로 등록하세요.</div>
+    </section>
+
+    <!-- 광고 수익 기록 -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>8. 광고 수익 기록 (공개 원장)</h2>
+        <div class="spacer"></div>
+        <button class="ghost" id="reloadRevenue">새로고침</button>
+      </div>
+      <div style="padding:18px">
+        <div id="revMsg"></div>
+        <p class="dim" style="margin-top:0">
+          여기 기록된 수익이 교환소의 "재원 대차"에 공개됩니다. 애드센스 등 정산 확정 금액을 기록하세요.
+          추가 전용 — 수정·삭제 불가.
+        </p>
+        <form id="revForm" class="row" style="align-items:end">
+          <div class="field" style="margin:0">
+            <label for="rv_date">정산 기준일 *</label>
+            <input id="rv_date" type="date" required />
+          </div>
+          <div class="field" style="margin:0">
+            <label for="rv_source">출처 *</label>
+            <input id="rv_source" required placeholder="애드센스" />
+          </div>
+          <div class="field" style="margin:0">
+            <label for="rv_amount">금액 (원) *</label>
+            <input id="rv_amount" type="number" min="1" step="1" required />
+          </div>
+          <div class="field" style="margin:0">
+            <label for="rv_proof">증빙 URL</label>
+            <input id="rv_proof" type="url" placeholder="정산 리포트 캡처 등" />
+          </div>
+          <div class="field" style="margin:0"><button type="submit">수익 기록</button></div>
+        </form>
+      </div>
+      <div class="tbl-scroll">
+        <table id="revTbl">
+          <thead><tr><th>#</th><th>기준일</th><th>출처</th><th class="num">금액</th><th>증빙</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="note" id="revNote"></div>
     </section>
 
   </div>
