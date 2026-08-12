@@ -26,7 +26,7 @@ export const COMPANY = {
   name: '주식회사 시지온',
   ceo: '김범진',
   bizNo: '105-87-52653',
-  mailOrder: '통신판매업신고',
+  mailOrder: '통신판매업신고 제2021-서울중구-0970호',
   address: '서울특별시 을지로5길 19, 페럼타워 23층',
 };
 
