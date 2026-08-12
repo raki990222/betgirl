@@ -1,0 +1,36 @@
+# betgirl — KBO 경기 자동 연동·자동 정산 (클라우드 크론)
+# 맥북이 꺼져 있어도 경기 게시·취소 환급·승패 정산이 돌아간다.
+# 로컬 launchd 와 동시에 돌아도 안전 (멱등 + events 자연키 unique).
+#
+# 필요 시크릿 (repo Settings → Secrets and variables → Actions):
+#   BETGIRL_BOT_EMAIL / BETGIRL_BOT_PASSWORD  — 봇 운영자 로그인 (정산 RPC 재사용)
+
+name: kbo-sync
+
+on:
+  schedule:
+    # KST 10:30~23:30 매시 30분 (UTC 01:30~14:30) — 경기 게시·취소·종료 정산 커버
+    - cron: "30 1-14 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kbo-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run sync + auto-settle
+        env:
+          BETGIRL_BOT_EMAIL: ${{ secrets.BETGIRL_BOT_EMAIL }}
+          BETGIRL_BOT_PASSWORD: ${{ secrets.BETGIRL_BOT_PASSWORD }}
+        run: python scripts/kbo_sync.py
