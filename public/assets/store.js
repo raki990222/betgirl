@@ -32,6 +32,13 @@ async function loadProducts() {
     })
     .join('');
   $('#listNote').textContent = `${data.length}개 상품`;
+
+  // ?buy=ID 딥링크: 해당 상품 주문 화면으로 바로 진입
+  const buy = new URLSearchParams(location.search).get('buy');
+  if (buy) {
+    const btn = el.querySelector(`button[data-id="${Number(buy)}"]`);
+    if (btn) btn.click();
+  }
 }
 
 /* ---------------------------------------------------------- 상품 선택 → 주문/결제 */
