@@ -37,8 +37,10 @@ ANON_KEY = (
     "w9MAXZorH9-VunRq-Z6_VH7pWGUYLSYlNsvfmSWkYwE"
 )
 KST = timezone(timedelta(hours=9))
-DEFAULT_ODDS = 1.85
 SYNC_DAYS_AHEAD = 7
+HOME_ADVANTAGE = 0.030     # KBO 홈 승률 보정
+MARGIN = 0.05              # 북 마진(오버라운드) — 두 배당 합 implied ≈ 1.05
+ODDS_MIN, ODDS_MAX = 1.10, 6.00
 
 TEAMS = {
     "LG": "LG 트윈스", "OB": "두산 베어스", "HT": "KIA 타이거즈", "SS": "삼성 라이온즈",
@@ -91,6 +93,36 @@ def http(url: str, headers: dict, data: bytes | None = None, method: str = "GET"
         return json.loads(body) if body.strip() else None
 
 
+def standings() -> dict[str, float]:
+    """teamId → 시즌 승률(wra). 실패하면 빈 dict(→ 배당 0.5 균형 폴백)."""
+    try:
+        d = http(
+            "https://api-gw.sports.naver.com/statistics/categories/kbo/seasons/2026/teams?type=regular",
+            {"User-Agent": "Mozilla/5.0"},
+        )
+        return {t["teamId"]: float(t["wra"]) for t in d["result"]["seasonTeamStats"]}
+    except Exception as e:  # noqa: BLE001
+        print(f"순위 조회 실패(배당 균형 폴백): {e}")
+        return {}
+
+
+def compute_odds(home_code: str, away_code: str, wra: dict[str, float]) -> tuple[float, float]:
+    """시즌 승률 + 홈 어드밴티지로 승패 배당을 산출한다. 두 배당은 절대 같지 않다."""
+    hw = wra.get(home_code, 0.5) + HOME_ADVANTAGE
+    aw = wra.get(away_code, 0.5)
+    p_home = hw / (hw + aw)
+    p_away = 1 - p_home
+
+    def odds(p: float) -> float:
+        o = 1.0 / (p * (1 + MARGIN))
+        return round(min(max(o, ODDS_MIN), ODDS_MAX), 2)
+
+    oh, oa = odds(p_home), odds(p_away)
+    if oh == oa:                                  # 이론상 동률 방지(승률 동일 팀)
+        oh, oa = round(oh - 0.01, 2), round(oa + 0.01, 2)
+    return oh, oa
+
+
 def naver_games() -> list[dict]:
     # 어제·그제 끝난 경기(심야 종료·크론 누락 캐치업)도 정산해야 하므로 -2일부터 본다
     start = datetime.now(KST).date() - timedelta(days=2)
@@ -125,7 +157,8 @@ def main() -> int:
     key = service_key()
     token = bot_token()
     games = naver_games()
-    events = sb("betgirl_events?select=id,home,away,start_at,status,result_code", ANON_KEY)
+    wra = standings()
+    events = sb("betgirl_events?select=id,home,away,start_at,status,result_code,options", ANON_KEY)
 
     def find_event(home: str, away: str, date: str):
         for e in events:
@@ -133,7 +166,7 @@ def main() -> int:
                 return e
         return None
 
-    to_create, to_cancel, to_retime, to_settle = [], [], [], []
+    to_create, to_cancel, to_retime, to_settle, to_reodds = [], [], [], [], []
 
     for g in games:
         home = TEAMS.get(g["homeTeamCode"])
@@ -144,6 +177,7 @@ def main() -> int:
         date = g["gameDate"]
         start_iso = f"{g['gameDateTime']}+09:00"
         proof = f"https://m.sports.naver.com/game/{g['gameId']}"
+        oh, oa = compute_odds(g["homeTeamCode"], g["awayTeamCode"], wra)
         ev = find_event(home, away, date)
 
         if g["cancel"]:
@@ -160,6 +194,11 @@ def main() -> int:
         if g["statusCode"] != "BEFORE":     # 진행 중 경기는 생성 대상 아님
             continue
 
+        options = [
+            {"code": "HOME", "label": f"{home} 승", "odds": oh},
+            {"code": "AWAY", "label": f"{away} 승", "odds": oa},
+        ]
+
         if ev is None:
             wd = WEEKDAY[datetime.fromisoformat(date).weekday()]
             to_create.append({
@@ -170,18 +209,20 @@ def main() -> int:
                 "away": away,
                 "start_at": start_iso,
                 "market": "승패",
-                "options": [
-                    {"code": "HOME", "label": f"{home} 승", "odds": DEFAULT_ODDS},
-                    {"code": "AWAY", "label": f"{away} 승", "odds": DEFAULT_ODDS},
-                ],
+                "options": options,
                 "official_url": proof,
-                "note": f"{g['stadium']} · 네이버 스포츠 공식 일정 자동 연동 · 배당은 운영자 게시값",
+                "note": f"{g['stadium']} · 네이버 스포츠 공식 일정 자동 연동 · 배당=시즌 승률+홈 어드밴티지 산출",
             })
-        elif ev["status"] == "open" and datetime.fromisoformat(ev["start_at"]) != datetime.fromisoformat(start_iso):
-            # 타임존 정규화 비교 (UTC 저장값 vs KST 표기값을 문자열로 비교하면 매번 오탐)
-            to_retime.append((ev["id"], start_iso))
+        elif ev["status"] == "open":
+            if datetime.fromisoformat(ev["start_at"]) != datetime.fromisoformat(start_iso):
+                to_retime.append((ev["id"], start_iso))
+            # 시작 전이면 최신 순위로 배당을 갱신한다 (등록된 픽은 자기 배당을 이미 봉인해 무영향)
+            cur = {o.get("code"): round(float(o.get("odds", 0)), 2) for o in (ev.get("options") or [])}
+            if cur.get("HOME") != oh or cur.get("AWAY") != oa:
+                to_reodds.append((ev["id"], options))
 
-    print(f"신규 {len(to_create)} / 취소 {len(to_cancel)} / 시각변경 {len(to_retime)} / 정산 {len(to_settle)}")
+    print(f"신규 {len(to_create)} / 취소 {len(to_cancel)} / 시각변경 {len(to_retime)} "
+          f"/ 배당갱신 {len(to_reodds)} / 정산 {len(to_settle)}")
 
     # 정산은 봇 운영자 RPC 경유 (수수료·결과기록·가드 = DB 로직 단일 소스)
     for ev, winner, proof, score in to_settle:
@@ -220,6 +261,11 @@ def main() -> int:
         sb(f"betgirl_events?id=eq.{ev_id}", wkey, "PATCH", {"start_at": start_iso},
            prefer="return=minimal", bearer=wbearer)
         print(f"  시각 변경: event {ev_id} → {start_iso}")
+
+    for ev_id, options in to_reodds:
+        sb(f"betgirl_events?id=eq.{ev_id}", wkey, "PATCH", {"options": options},
+           prefer="return=minimal", bearer=wbearer)
+        print(f"  배당 갱신: event {ev_id} → {options[0]['odds']} / {options[1]['odds']}")
 
     for ev, proof in to_cancel:
         if token:
