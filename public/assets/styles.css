@@ -340,6 +340,18 @@ footer.site {
   font-size: 12px;
 }
 footer.site strong { color: var(--text); }
+footer.site .foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+}
+footer.site .foot-links a { color: var(--muted); text-decoration: none; }
+footer.site .foot-links a:hover { color: var(--text); }
+footer.site .foot-links a strong { color: var(--text); }
 footer.site .foot-legal { line-height: 1.7; }
 footer.site .foot-corp {
   margin-top: 12px;
