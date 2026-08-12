@@ -340,6 +340,15 @@ footer.site {
   font-size: 12px;
 }
 footer.site strong { color: var(--text); }
+footer.site .foot-legal { line-height: 1.7; }
+footer.site .foot-corp {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  line-height: 1.7;
+  font-size: 11px;
+  color: var(--muted);
+}
 
 @media (max-width: 640px) {
   .hero h1 { font-size: 23px; }

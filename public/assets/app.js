@@ -194,7 +194,15 @@ export async function verifyLedger() {
 }
 
 /* ------------------------------------------------------------------ 공통 내비 */
+import { mountBrand, companyFooter } from './brand.js';
+
 export async function initNav(activeHref) {
+  // 로고 워드마크 + 회사 정보 푸터를 전 페이지 공통 적용
+  const sub = document.querySelector('header.site .brand-sub')?.textContent || '';
+  mountBrand(sub);
+  const foot = document.querySelector('footer.site');
+  if (foot) foot.innerHTML = companyFooter();
+
   document.querySelectorAll('header.site nav a').forEach((a) => {
     if (a.getAttribute('href') === activeHref) a.classList.add('on');
   });

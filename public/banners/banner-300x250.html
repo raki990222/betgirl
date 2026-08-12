@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=300, initial-scale=1" />
+<title>betgirl 300x250</title>
+<style>
+  :root { --accent:#e0316f; --bg:#0b0d12; --panel:#12151d; --line:#232838; --text:#e8ecf5; --muted:#8b93a7; }
+  * { box-sizing:border-box; margin:0; }
+  html,body { width:300px; height:250px; overflow:hidden; }
+  .ad {
+    width:300px; height:250px; position:relative; cursor:pointer;
+    background:
+      radial-gradient(360px 200px at 78% -10%, rgba(224,49,111,0.22), transparent 60%),
+      linear-gradient(160deg,#0d1017,#12151d);
+    border:1px solid var(--line); border-radius:14px; overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",sans-serif;
+    color:var(--text); text-decoration:none; display:block;
+  }
+  .pad { padding:22px 22px 20px; height:100%; display:flex; flex-direction:column; }
+  .brand { display:flex; align-items:center; gap:8px; font-weight:800; font-size:21px; letter-spacing:-0.02em; }
+  .brand em { color:var(--accent); font-style:normal; }
+  .brand svg { color:var(--accent); }
+  .head { margin-top:16px; font-size:20px; font-weight:800; line-height:1.3; letter-spacing:-0.02em; }
+  .head b { color:var(--accent); }
+  .sub { margin-top:9px; font-size:12.5px; color:var(--muted); line-height:1.5; }
+  .cta {
+    margin-top:auto; align-self:flex-start;
+    background:var(--accent); color:#fff; font-weight:800; font-size:13px;
+    padding:10px 18px; border-radius:9px;
+  }
+  .chips { position:absolute; right:16px; bottom:74px; display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+  .chip { font-size:10px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:3px 9px; background:rgba(255,255,255,0.02); }
+  .rings { position:absolute; right:-40px; top:-40px; opacity:0.5; }
+</style>
+</head>
+<body>
+<a class="ad" href="https://betgirl.site" target="_blank" rel="noopener">
+  <svg class="rings" width="180" height="180" viewBox="0 0 32 32" fill="none">
+    <circle cx="16" cy="16" r="14" stroke="#e0316f" stroke-width="1.2" opacity="0.35"/>
+    <circle cx="16" cy="16" r="9" stroke="#e0316f" stroke-width="1.2" opacity="0.5"/>
+    <circle cx="16" cy="16" r="3.5" fill="#e0316f" opacity="0.7"/>
+  </svg>
+  <div class="pad">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2" opacity="0.35"/>
+        <circle cx="16" cy="16" r="9" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+        <circle cx="16" cy="16" r="3.5" fill="currentColor"/>
+      </svg>
+      bet<em>girl</em>
+    </div>
+    <div class="head">모든 픽과 정산을<br><b>그대로 공개</b>합니다</div>
+    <div class="sub">KBO 경기 예측 · 조작 불가능한 공개 원장<br>믿지 말고, 직접 검증하세요</div>
+    <div class="chips">
+      <span class="chip">해시 체인 검증</span>
+      <span class="chip">벳 = 무료 포인트</span>
+    </div>
+    <div class="cta">지금 예측하기 →</div>
+  </div>
+</a>
+</body>
+</html>
