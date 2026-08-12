@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>betgirl — 결제 완료</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <script src="/assets/theme.js"></script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <span class="brand"><span class="brand-sub">결제 완료</span></span>
+    <nav><a href="/store">스토어</a><a href="/">경기</a></nav>
+  </div>
+</header>
+<main class="wrap">
+  <section class="panel" style="max-width:520px;margin:48px auto 0">
+    <div class="panel-head"><h2 id="title">결제를 확인하는 중…</h2></div>
+    <div style="padding:20px" id="body">
+      <div class="empty">토스페이먼츠 승인 결과를 확인하고 있습니다…</div>
+    </div>
+    <div class="note"><a href="/store">← 스토어로 돌아가기</a></div>
+  </section>
+</main>
+<footer class="site"></footer>
+<script src="/config.js"></script>
+<script type="module">
+  import { initNav } from '/assets/app.js';
+  initNav('/store');
+  const q = new URLSearchParams(location.search);
+  const paymentKey = q.get('paymentKey'), orderId = q.get('orderId'), amount = Number(q.get('amount'));
+  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';
+  const body = document.querySelector('#body'), title = document.querySelector('#title');
+  (async () => {
+    try {
+      const r = await fetch('/api/toss-confirm', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentKey, orderId, amount }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || '승인 실패');
+      title.textContent = '결제가 완료되었습니다 🎉';
+      body.innerHTML =
+        `<div class="msg ok" style="font-size:14px">
+          <div><strong>${d.orderName ?? ''}</strong></div>
+          <div>결제 금액 ${won(amount)}</div>
+          <div class="dim" style="margin-top:6px">주문번호 ${orderId}</div>
+         </div>
+         <p class="dim" style="font-size:13px">기프티콘은 입력하신 이메일로 발송됩니다 (최대 24시간).</p>`;
+    } catch (e) {
+      title.textContent = '결제 확인 실패';
+      body.innerHTML = `<div class="msg err">${e.message}</div>`;
+    }
+  })();
+</script>
+</body>
+</html>

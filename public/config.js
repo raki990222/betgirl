@@ -9,4 +9,7 @@ window.BETGIRL_CONFIG = {
   CURRENCY: '벳',
   // 체인 앵커 저장소 (매일 tip 해시가 게시됨). 무결성 검증이 이 파일과 대조한다.
   ANCHOR_RAW_URL: 'https://raw.githubusercontent.com/raki990222/betgirl-anchor/main/anchors.jsonl',
+  // 토스페이먼츠 클라이언트 키 (공개용). 테스트 키 → PG 승인 후 라이브 키로 교체.
+  // 시크릿 키는 여기 넣지 말 것 — 서버(Vercel 환경변수 TOSS_SECRET_KEY)에만 둔다.
+  TOSS_CLIENT_KEY: 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm',
 };

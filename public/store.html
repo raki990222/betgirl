@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>betgirl — 상품 스토어</title>
+  <meta name="description" content="모바일 기프티콘을 현금으로 구매하는 betgirl 스토어." />
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <script src="/assets/theme.js"></script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    .prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; padding:18px; }
+    .prod {
+      background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:16px;
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .prod h3 { margin:0; font-size:15px; }
+    .prod .price { font-size:20px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; }
+    .prod .desc { font-size:12px; color:var(--muted); }
+    .field label { display:block; font-size:12px; color:var(--muted); margin-bottom:5px; }
+    .order-sum { padding:14px 18px; border-bottom:1px solid var(--line); font-size:14px; }
+    .order-sum b { color:var(--accent); font-size:18px; }
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <span class="brand"><span class="brand-sub">상품 스토어</span></span>
+    <nav>
+      <a href="/">경기</a><a href="/ledger">원장</a><a href="/store">스토어</a>
+      <a href="/guide">가이드</a><a href="/about">규칙</a><a href="/admin">운영</a>
+      <a href="#" id="logout" hidden>로그아웃</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <h1>모바일 상품 스토어</h1>
+    <p>기프티콘·모바일 상품권을 <strong>현금으로 구매</strong>합니다. 결제는 토스페이먼츠로 안전하게 처리되며,
+    이 스토어는 예측·벳(포인트)과 무관한 일반 전자상거래입니다.</p>
+  </div>
+
+  <!-- 1단계: 상품 목록 -->
+  <section class="panel" id="listPanel">
+    <div class="panel-head"><h2>상품</h2><div class="spacer"></div><span class="dim" id="listNote"></span></div>
+    <div class="prod-grid" id="products"><div class="empty">불러오는 중…</div></div>
+  </section>
+
+  <!-- 2단계: 주문/결제 -->
+  <section class="panel" id="orderPanel" hidden>
+    <div class="panel-head">
+      <h2>주문 · 결제</h2><div class="spacer"></div>
+      <button class="ghost" id="backBtn">← 상품 목록</button>
+    </div>
+    <div class="order-sum" id="orderSum"></div>
+    <div style="padding:18px">
+      <div id="orderMsg"></div>
+      <div class="field" style="margin-bottom:14px">
+        <label for="buyerEmail">받는 이메일 (기프티콘 발송)</label>
+        <input id="buyerEmail" type="email" placeholder="you@example.com" required />
+      </div>
+      <div id="payment-method"></div>
+      <div id="agreement"></div>
+      <button id="payBtn" style="width:100%;margin-top:16px">결제하기</button>
+      <p class="dim" style="font-size:12px;margin-top:10px">
+        결제하기를 누르면 토스페이먼츠 결제창이 열립니다. (현재 테스트 결제 모드 — 실제 청구되지 않습니다)
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="site"></footer>
+
+<script src="/config.js"></script>
+<script type="module" src="/assets/store.js"></script>
+</body>
+</html>
