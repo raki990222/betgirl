@@ -50,7 +50,7 @@ export const COMPANY = {
   bizNo: '105-87-52653',
   mailOrder: '통신판매업신고 제2021-서울중구-0970호',
   address: '서울특별시 을지로5길 19, 페럼타워 23층',
-  contact: 'help@betgirl.site',
+  contact: 'cs@cizion.com',
   github: 'https://github.com/raki990222/betgirl',
   anchor: 'https://github.com/raki990222/betgirl-anchor',
 };
