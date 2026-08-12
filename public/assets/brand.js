@@ -1,14 +1,36 @@
 // betgirl 브랜드 자산 — 로고(인라인 SVG)와 회사 정보를 한 곳에서 관리.
 // 로고: 타깃(🎯) 과녁을 모티프로 한 워드마크. --accent 를 상속해 라이트/다크 자동 대응.
 
-export const LOGO_MARK = (size = 26) => `
-<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none" aria-hidden="true"
-     style="vertical-align:-5px">
-  <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2" opacity="0.35"/>
-  <circle cx="16" cy="16" r="9" stroke="currentColor" stroke-width="2" opacity="0.6"/>
-  <circle cx="16" cy="16" r="3.5" fill="currentColor"/>
-  <path d="M16 2 L16 7 M16 25 L16 30 M2 16 L7 16 M25 16 L30 16" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+// 윙드 로델 엠블럼 (차량 엠블럼 스타일). 고정 그라데이션이라 라이트/다크 동일하게 보인다.
+// id 충돌 방지를 위해 인스턴스마다 접미사를 붙인다.
+export const LOGO_MARK = (size = 26, id = 'lg') => `
+<svg width="${size * 2}" height="${size}" viewBox="0 0 64 44" fill="none" aria-hidden="true"
+     style="vertical-align:-9px">
+  <defs>
+    <linearGradient id="wing-${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6aa6"/><stop offset="1" stop-color="#c81f5a"/>
+    </linearGradient>
+    <radialGradient id="core-${id}" cx="0.5" cy="0.36" r="0.75">
+      <stop offset="0" stop-color="#2b3040"/><stop offset="1" stop-color="#0b0d13"/>
+    </radialGradient>
+    <linearGradient id="ring-${id}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8dbd"/><stop offset="0.5" stop-color="#e0316f"/>
+      <stop offset="1" stop-color="#9c1244"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#wing-${id})">
+    <rect x="2"  y="15.4" width="14" height="3" rx="1.5"/>
+    <rect x="1"  y="20.3" width="16" height="3" rx="1.5"/>
+    <rect x="4"  y="25.2" width="12" height="3" rx="1.5"/>
+    <rect x="48" y="15.4" width="14" height="3" rx="1.5"/>
+    <rect x="47" y="20.3" width="16" height="3" rx="1.5"/>
+    <rect x="48" y="25.2" width="12" height="3" rx="1.5"/>
+  </g>
+  <circle cx="32" cy="22" r="15" fill="url(#core-${id})" stroke="url(#ring-${id})" stroke-width="2.6"/>
+  <circle cx="32" cy="22" r="9" fill="none" stroke="#ff8dbd" stroke-width="1.5" opacity="0.55"/>
+  <circle cx="32" cy="22" r="4.1" fill="url(#ring-${id})"/>
+  <path d="M23 15 a12 12 0 0 1 18 0" stroke="#fff" stroke-width="1.3" opacity="0.18"
+        fill="none" stroke-linecap="round"/>
 </svg>`;
 
 /** 헤더 브랜드 영역을 표준화한다 (기존 정적 마크업을 대체). */
@@ -16,8 +38,8 @@ export function mountBrand(subtitle = '') {
   const el = document.querySelector('header.site .brand');
   if (!el) return;
   el.innerHTML =
-    `<a href="/" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
-       <span style="color:var(--accent)">${LOGO_MARK(24)}</span>
+    `<a href="/" style="display:inline-flex;align-items:center;gap:9px;color:inherit;text-decoration:none">
+       ${LOGO_MARK(26, 'hdr')}
        <span>bet<em>girl</em></span>
      </a>` + (subtitle ? `<span class="brand-sub">${subtitle}</span>` : '');
 }
