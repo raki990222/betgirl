@@ -63,6 +63,7 @@ export function companyFooter() {
       <nav class="foot-links">
         <a href="/terms">이용약관</a>
         <a href="/privacy"><strong>개인정보처리방침</strong></a>
+        <a href="/refund">환불약관</a>
         <a href="/about">검증 방법</a>
         <a href="${c.github}" target="_blank" rel="noopener">소스코드</a>
         <a href="${c.anchor}" target="_blank" rel="noopener">검증 앵커</a>
