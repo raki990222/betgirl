@@ -12,58 +12,58 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
     :root {
-      --gold-1:#fbe6a6; --gold-2:#d4af37; --gold-3:#8a6a12;
-      --accent:#e0316f; --text:#f4f1e9; --muted:#a39f95; --line:#2a2822;
+      --gold-1:#f0d27a; --gold-2:#c99a2e; --gold-3:#a97e18;
+      --accent:#e0316f; --ink:#14140f; --muted:#7a766b; --line:#eae4d4;
     }
     * { box-sizing:border-box; margin:0; }
     html,body { height:100%; }
     body {
       min-height:100%;
       font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",sans-serif;
-      color:var(--text);
+      color:var(--ink);
       background:
-        radial-gradient(900px 500px at 50% -10%, rgba(212,175,55,0.14), transparent 60%),
-        radial-gradient(700px 500px at 85% 110%, rgba(224,49,111,0.10), transparent 60%),
-        linear-gradient(180deg,#0c0b09,#070707);
+        radial-gradient(900px 520px at 50% -8%, rgba(201,154,46,0.10), transparent 62%),
+        radial-gradient(680px 480px at 88% 112%, rgba(224,49,111,0.06), transparent 60%),
+        #ffffff;
       -webkit-font-smoothing:antialiased;
     }
     a.page {
       display:flex; flex-direction:column; align-items:center; justify-content:center;
       min-height:100vh; text-align:center; text-decoration:none; color:inherit;
-      padding:40px 24px 28px; gap:0; cursor:pointer;
+      padding:40px 24px 28px; cursor:pointer;
     }
-    .emblem { width:150px; height:104px; filter:drop-shadow(0 6px 24px rgba(212,175,55,0.25)); }
-    .wordmark { font-size:52px; font-weight:800; letter-spacing:-0.03em; margin-top:14px; }
+    .emblem { width:150px; height:104px; filter:drop-shadow(0 8px 22px rgba(201,154,46,0.28)); }
+    .wordmark { font-size:52px; font-weight:800; letter-spacing:-0.03em; margin-top:14px; color:var(--ink); }
     .wordmark em { font-style:normal; color:var(--accent); }
     .kicker {
-      margin-top:22px; font-size:13px; letter-spacing:0.28em; font-weight:700;
-      color:var(--gold-2); text-transform:uppercase;
+      margin-top:22px; font-size:13px; letter-spacing:0.28em; font-weight:800;
+      color:var(--gold-3); text-transform:uppercase;
     }
     .slogan {
       margin-top:12px; font-size:min(9vw,40px); font-weight:800; line-height:1.25; letter-spacing:-0.03em;
-      max-width:720px;
+      max-width:720px; color:var(--ink);
     }
     .slogan .g {
-      background:linear-gradient(90deg,var(--gold-1),var(--gold-2) 55%,var(--gold-3));
+      background:linear-gradient(90deg,var(--gold-3),var(--gold-2) 55%,#8a6410);
       -webkit-background-clip:text; background-clip:text; color:transparent;
     }
     .sub { margin-top:18px; font-size:16px; color:var(--muted); line-height:1.6; max-width:560px; }
     .points { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:26px; }
     .pt {
-      font-size:13px; color:var(--text); border:1px solid var(--line); border-radius:999px;
-      padding:8px 15px; background:rgba(255,255,255,0.02);
+      font-size:13px; color:var(--ink); border:1px solid var(--line); border-radius:999px;
+      padding:8px 15px; background:#fffdf7; box-shadow:0 1px 2px rgba(0,0,0,0.02);
     }
-    .pt b { color:var(--gold-2); font-weight:700; }
+    .pt b { color:var(--gold-3); font-weight:700; }
     .cta {
       margin-top:34px;
       background:linear-gradient(90deg,var(--gold-1),var(--gold-2));
-      color:#1a1405; font-weight:800; font-size:17px; letter-spacing:-0.01em;
+      color:#241a04; font-weight:800; font-size:17px; letter-spacing:-0.01em;
       padding:15px 34px; border-radius:12px;
-      box-shadow:0 8px 30px rgba(212,175,55,0.28);
+      box-shadow:0 10px 26px rgba(201,154,46,0.32);
     }
     .cta-note { margin-top:12px; font-size:12.5px; color:var(--muted); }
     .legal {
-      margin-top:auto; padding-top:34px; font-size:11px; color:#6f6b62; line-height:1.7; max-width:640px;
+      margin-top:auto; padding-top:34px; font-size:11px; color:#a49f92; line-height:1.7; max-width:640px;
     }
     @media (max-width:520px){ .wordmark{font-size:40px} .emblem{width:120px;height:84px} }
   </style>
