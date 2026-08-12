@@ -330,12 +330,36 @@ function renderMatches() {
     groups.get(e.round_key).push(e);
   }
 
-  $('#matches').innerHTML = [...groups]
-    .map(
-      ([roundKey, evs]) => `
-      <div class="round-head">${esc(roundKey)} <span class="dim">${evs.length}경기</span></div>
-      ${evs.map(matchCard).join('')}`
-    )
+  // 오늘 기준 정렬: 오늘·다가올 회차를 임박한 순으로 먼저, 지난 회차는 최근 순으로 뒤에.
+  // (지난 경기는 숨기지 않되 아래로 내린다)
+  const todayKey = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
+  const dayOf = (evs) => new Date(evs[0].start_at).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+  const ordered = [...groups].sort(([, a], [, b]) => {
+    const da = dayOf(a);
+    const db = dayOf(b);
+    const pa = da < todayKey ? 1 : 0;   // 지난 날짜는 뒤로
+    const pb = db < todayKey ? 1 : 0;
+    if (pa !== pb) return pa - pb;
+    // 다가올 회차는 오름차순(임박한 순), 지난 회차는 내림차순(최근 순)
+    return pa === 0 ? da.localeCompare(db) : db.localeCompare(da);
+  });
+
+  $('#matches').innerHTML = ordered
+    .map(([roundKey, evs]) => {
+      const day = dayOf(evs);
+      const tag =
+        day === todayKey ? '<span class="badge pending">오늘</span>'
+        : day < todayKey ? '<span class="badge void">종료</span>'
+        : '';
+      return `
+      <div class="round-head">${esc(roundKey)} <span class="dim">${evs.length}경기</span> ${tag}</div>
+      ${evs
+        .slice()
+        .sort((x, y) => new Date(x.start_at) - new Date(y.start_at))
+        .map(matchCard)
+        .join('')}`;
+    })
     .join('');
 }
 
