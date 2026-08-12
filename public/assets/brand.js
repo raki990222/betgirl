@@ -8,14 +8,14 @@ export const LOGO_MARK = (size = 26, id = 'lg') => `
      style="vertical-align:-9px">
   <defs>
     <linearGradient id="wing-${id}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff6aa6"/><stop offset="1" stop-color="#c81f5a"/>
+      <stop offset="0" stop-color="#fbe6a6"/><stop offset="0.5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6a12"/>
     </linearGradient>
-    <radialGradient id="core-${id}" cx="0.5" cy="0.36" r="0.75">
-      <stop offset="0" stop-color="#2b3040"/><stop offset="1" stop-color="#0b0d13"/>
+    <radialGradient id="core-${id}" cx="0.5" cy="0.34" r="0.78">
+      <stop offset="0" stop-color="#20202a"/><stop offset="1" stop-color="#070709"/>
     </radialGradient>
     <linearGradient id="ring-${id}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ff8dbd"/><stop offset="0.5" stop-color="#e0316f"/>
-      <stop offset="1" stop-color="#9c1244"/>
+      <stop offset="0" stop-color="#fff3c4"/><stop offset="0.5" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#7c5e10"/>
     </linearGradient>
   </defs>
   <g fill="url(#wing-${id})">
@@ -27,9 +27,9 @@ export const LOGO_MARK = (size = 26, id = 'lg') => `
     <rect x="48" y="25.2" width="12" height="3" rx="1.5"/>
   </g>
   <circle cx="32" cy="22" r="15" fill="url(#core-${id})" stroke="url(#ring-${id})" stroke-width="2.6"/>
-  <circle cx="32" cy="22" r="9" fill="none" stroke="#ff8dbd" stroke-width="1.5" opacity="0.55"/>
+  <circle cx="32" cy="22" r="9" fill="none" stroke="#e7c65b" stroke-width="1.5" opacity="0.6"/>
   <circle cx="32" cy="22" r="4.1" fill="url(#ring-${id})"/>
-  <path d="M23 15 a12 12 0 0 1 18 0" stroke="#fff" stroke-width="1.3" opacity="0.18"
+  <path d="M23 15 a12 12 0 0 1 18 0" stroke="#fff6da" stroke-width="1.3" opacity="0.22"
         fill="none" stroke-linecap="round"/>
 </svg>`;
 
