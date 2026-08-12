@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>betgirl — 검증되는 예측 마켓</title>
+  <meta name="description" content="betgirl은 결과를 조작할 수 없는 공개 원장 위의 예측 마켓입니다. 모든 픽과 정산을 직접 검증하세요." />
+  <meta property="og:title" content="betgirl — 검증되는 예측 마켓" />
+  <meta property="og:description" content="조작 불가능한 공개 원장. 믿지 말고 직접 검증하세요." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://betgirl.site" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    :root {
+      --gold-1:#fbe6a6; --gold-2:#d4af37; --gold-3:#8a6a12;
+      --accent:#e0316f; --text:#f4f1e9; --muted:#a39f95; --line:#2a2822;
+    }
+    * { box-sizing:border-box; margin:0; }
+    html,body { height:100%; }
+    body {
+      min-height:100%;
+      font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at 50% -10%, rgba(212,175,55,0.14), transparent 60%),
+        radial-gradient(700px 500px at 85% 110%, rgba(224,49,111,0.10), transparent 60%),
+        linear-gradient(180deg,#0c0b09,#070707);
+      -webkit-font-smoothing:antialiased;
+    }
+    a.page {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:100vh; text-align:center; text-decoration:none; color:inherit;
+      padding:40px 24px 28px; gap:0; cursor:pointer;
+    }
+    .emblem { width:150px; height:104px; filter:drop-shadow(0 6px 24px rgba(212,175,55,0.25)); }
+    .wordmark { font-size:52px; font-weight:800; letter-spacing:-0.03em; margin-top:14px; }
+    .wordmark em { font-style:normal; color:var(--accent); }
+    .kicker {
+      margin-top:22px; font-size:13px; letter-spacing:0.28em; font-weight:700;
+      color:var(--gold-2); text-transform:uppercase;
+    }
+    .slogan {
+      margin-top:12px; font-size:min(9vw,40px); font-weight:800; line-height:1.25; letter-spacing:-0.03em;
+      max-width:720px;
+    }
+    .slogan .g {
+      background:linear-gradient(90deg,var(--gold-1),var(--gold-2) 55%,var(--gold-3));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .sub { margin-top:18px; font-size:16px; color:var(--muted); line-height:1.6; max-width:560px; }
+    .points { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:26px; }
+    .pt {
+      font-size:13px; color:var(--text); border:1px solid var(--line); border-radius:999px;
+      padding:8px 15px; background:rgba(255,255,255,0.02);
+    }
+    .pt b { color:var(--gold-2); font-weight:700; }
+    .cta {
+      margin-top:34px;
+      background:linear-gradient(90deg,var(--gold-1),var(--gold-2));
+      color:#1a1405; font-weight:800; font-size:17px; letter-spacing:-0.01em;
+      padding:15px 34px; border-radius:12px;
+      box-shadow:0 8px 30px rgba(212,175,55,0.28);
+    }
+    .cta-note { margin-top:12px; font-size:12.5px; color:var(--muted); }
+    .legal {
+      margin-top:auto; padding-top:34px; font-size:11px; color:#6f6b62; line-height:1.7; max-width:640px;
+    }
+    @media (max-width:520px){ .wordmark{font-size:40px} .emblem{width:120px;height:84px} }
+  </style>
+</head>
+<body>
+  <a class="page" href="https://betgirl.site/">
+    <!-- 골드 엠블럼 -->
+    <svg class="emblem" viewBox="0 0 64 44" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe6a6"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6a12"/></linearGradient>
+        <radialGradient id="c" cx=".5" cy=".34" r=".78"><stop offset="0" stop-color="#20202a"/><stop offset="1" stop-color="#070709"/></radialGradient>
+        <linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#7c5e10"/></linearGradient>
+      </defs>
+      <g fill="url(#w)"><rect x="2" y="15.4" width="14" height="3" rx="1.5"/><rect x="1" y="20.3" width="16" height="3" rx="1.5"/><rect x="4" y="25.2" width="12" height="3" rx="1.5"/><rect x="48" y="15.4" width="14" height="3" rx="1.5"/><rect x="47" y="20.3" width="16" height="3" rx="1.5"/><rect x="48" y="25.2" width="12" height="3" rx="1.5"/></g>
+      <circle cx="32" cy="22" r="15" fill="url(#c)" stroke="url(#r)" stroke-width="2.6"/>
+      <circle cx="32" cy="22" r="9" fill="none" stroke="#e7c65b" stroke-width="1.5" opacity=".6"/>
+      <circle cx="32" cy="22" r="4.1" fill="url(#r)"/>
+    </svg>
+
+    <div class="wordmark">bet<em>girl</em></div>
+
+    <div class="kicker">Prediction Market</div>
+    <h1 class="slogan">결과로 증명하는<br><span class="g">투명한 예측 마켓</span></h1>
+    <p class="sub">경기를 예측하고, 모든 픽과 정산을 공개 원장에 그대로 남깁니다.<br>믿지 말고, 직접 검증하세요.</p>
+
+    <div class="points">
+      <span class="pt"><b>조작 불가능</b>한 공개 원장</span>
+      <span class="pt">경기 시작 전 <b>봉인</b></span>
+      <span class="pt">누구나 <b>직접 검증</b></span>
+    </div>
+
+    <div class="cta">지금 예측하러 가기 →</div>
+    <div class="cta-note">화면 어디를 눌러도 betgirl.site로 이동합니다</div>
+
+    <div class="legal">
+      본 사이트는 베팅을 접수·중개하지 않으며 금전을 수취하지 않습니다. 벳은 현금 가치가 없는 사이트 내부 포인트입니다.
+      만 19세 미만 이용 불가 · 도박 문제 상담 1336 · 주식회사 시지온
+    </div>
+  </a>
+</body>
+</html>
