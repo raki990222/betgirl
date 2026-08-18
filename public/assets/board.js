@@ -11,15 +11,24 @@ const slip = new Map();         // event_id → { ev, opt, stake }
 const DEFAULT_STAKE = 5000;
 const MIN_STAKE = 1000;
 const STAKE_STEP = 100;
+const QUICK_STAKES = [1000, 5000, 10000, 50000];
+const MAX_LEGS = 10;                    // DB(betgirl_place_combo)와 같은 상한
+const MAX_ODDS_CENTS = 999999;          // odds numeric(6,2) 상한 = 9,999.99
+
+// 'single' = 경기마다 따로 등록 / 'combo' = 담긴 경기를 한 장으로 묶어 전부 맞아야 적중
+let slipMode = 'single';
+let bulkStake = DEFAULT_STAKE;          // 싱글 일괄 적용 금액 (새 픽의 기본값이기도 하다)
+let comboStake = DEFAULT_STAKE;         // 조합 티켓 한 장의 베팅액
+let feeRate = 0.05;                     // 적중 수수료 — betgirl_fee_policy 에서 로드
 
 const MATCH_LIMIT_STEP = 5;      // 처음·더보기당 노출 경기 수
 let matchLimit = MATCH_LIMIT_STEP;
 
 /** ?invite=CODE 초대 링크로 들어오면 코드를 저장해 가입·참가 등록에 자동 채움 */
 const urlInvite = new URLSearchParams(location.search).get('invite');
-if (urlInvite && /^[A-Za-z0-9]{4,16}$/.test(urlInvite)) {
-  localStorage.setItem('betgirl_invite', urlInvite.toUpperCase());
-}
+const inviteCode =
+  urlInvite && /^[A-Za-z0-9]{4,16}$/.test(urlInvite) ? urlInvite.toUpperCase() : null;
+if (inviteCode) localStorage.setItem('betgirl_invite', inviteCode);
 
 /* ------------------------------------------------------------------ 시각 */
 const startLabel = (ts) => {
@@ -90,8 +99,8 @@ function renderAccount() {
       </section>`;
 
     let signupMode = false;
-    $('#authToggle').addEventListener('click', () => {
-      signupMode = !signupMode;
+    const setAuthMode = (on) => {
+      signupMode = on;
       $('#authTitle').textContent = signupMode ? '계정 만들기' : '픽을 등록하려면 로그인하세요';
       $('#authSubmit').textContent = signupMode ? '가입 (확인 메일 발송)' : '로그인';
       $('#authToggle').textContent = signupMode ? '로그인으로' : '계정 만들기';
@@ -100,7 +109,17 @@ function renderAccount() {
       $('#authPw2').required = signupMode;
       $('#authPw').autocomplete = signupMode ? 'new-password' : 'current-password';
       $('#authMsg').innerHTML = '';
-    });
+    };
+    $('#authToggle').addEventListener('click', () => setAuthMode(!signupMode));
+
+    // 초대 링크(?invite=CODE)로 들어왔으면 가입 화면을 바로 펼치고 코드를 채워둔다.
+    if (inviteCode) {
+      setAuthMode(true);
+      $('#authInvite').value = inviteCode;
+      $('#authMsg').innerHTML =
+        `<div class="msg ok">초대 코드 <strong>${esc(inviteCode)}</strong> 를 확인했습니다.
+         가입 후 참가 등록까지 마치면 <strong>20,000벳</strong>이 지급됩니다.</div>`;
+    }
 
     $('#authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -438,24 +457,58 @@ function toggleOption(eventId, code) {
 
   const cur = slip.get(eventId);
   if (cur && cur.opt.code === code) slip.delete(eventId);
-  else slip.set(eventId, { ev, opt, stake: cur?.stake ?? DEFAULT_STAKE });
+  else slip.set(eventId, { ev, opt, stake: cur?.stake ?? bulkStake });
 
   renderMatches();
   renderSlip();
 }
 
+/* ------------------------------------------------------- 배당·지급액 계산 (정수 연산)
+   배당은 소수 2자리다. 부동소수로 곱하면 서버(numeric)와 1벳씩 어긋날 수 있으므로
+   전부 1/100 단위 정수로 계산해 DB 의 round(,2) · floor() 와 값을 일치시킨다. */
+const oddsCents = (odds) => Math.round(Number(odds) * 100);
+
+function comboOddsCents(entries) {
+  if (!entries.length) return 0;
+  let num = 1n;
+  for (const { opt } of entries) num *= BigInt(oddsCents(opt.odds));
+  const denom = 10n ** BigInt(2 * entries.length - 2);
+  return Number((num + denom / 2n) / denom);          // 사사오입 = numeric round(,2)
+}
+
+const feeOf = (stake) => Math.floor((stake * Math.round(feeRate * 10000)) / 10000);
+const payoutOf = (stake, cents) =>
+  Math.max(Math.floor((stake * cents) / 100) - feeOf(stake), 0);
+
+const stakeProblem = (v) =>
+  !Number.isFinite(v) || v < MIN_STAKE
+    ? `베팅은 최소 ${MIN_STAKE.toLocaleString('ko-KR')}벳부터 가능합니다.`
+    : v % STAKE_STEP !== 0
+      ? `베팅은 ${STAKE_STEP}벳 단위로만 가능합니다.`
+      : '';
+
+/* ------------------------------------------------------------------ 슬립 렌더 */
 function renderSlip() {
   const body = $('#slipBody');
   const foot = $('#slipFoot');
-  $('#clearSlip').hidden = slip.size === 0;
+  const entries = [...slip.values()];
 
-  if (!slip.size) {
-    body.innerHTML = `<div class="empty">경기에서 배당을 눌러 픽을 담으세요.</div>`;
+  $('#clearSlip').hidden = entries.length === 0;
+  document.querySelectorAll('#slipModes .slip-mode').forEach((b) =>
+    b.classList.toggle('on', b.dataset.mode === slipMode));
+
+  if (!entries.length) {
+    body.innerHTML = `<div class="empty">경기에서 배당을 눌러 픽을 담으세요.${
+      slipMode === 'combo' ? '<br />조합은 2경기 이상 담아야 합니다.' : ''
+    }</div>`;
     foot.hidden = true;
+    foot.innerHTML = '';
     return;
   }
 
-  body.innerHTML = [...slip.values()]
+  const combo = slipMode === 'combo';
+
+  body.innerHTML = entries
     .map(
       ({ ev, opt, stake }) => `
       <div class="slip-row">
@@ -463,35 +516,133 @@ function renderSlip() {
           <strong>${esc(opt.label)}</strong>
           <div class="dim">${esc(ev.home)} vs ${esc(ev.away)} · 배당 ${Number(opt.odds).toFixed(2)}</div>
         </div>
-        <input class="slip-stake" type="number" min="${MIN_STAKE}" step="${STAKE_STEP}" value="${stake}" data-event="${ev.id}" />
+        ${combo
+          ? `<span class="slip-odds">${Number(opt.odds).toFixed(2)}</span>`
+          : `<input class="slip-stake" type="number" min="${MIN_STAKE}" step="${STAKE_STEP}"
+                    value="${stake}" data-event="${ev.id}" aria-label="베팅액" />`}
         <button class="slip-x ghost" data-remove="${ev.id}" aria-label="빼기">×</button>
       </div>`
     )
     .join('');
 
-  const total = [...slip.values()].reduce((a, s) => a + Number(s.stake || 0), 0);
-  $('#slipTotal').textContent = won(total);
-  foot.hidden = false;
+  const chips = QUICK_STAKES
+    .map((v) => `<button type="button" class="chip" data-amount="${v}">${v.toLocaleString('ko-KR')}</button>`)
+    .join('');
 
+  foot.hidden = false;
+  foot.innerHTML = `
+    <div class="slip-bulk">
+      <label for="bulkStake">${combo ? '조합 베팅액' : '베팅액 일괄 적용'}</label>
+      <div class="slip-bulk-row">
+        <input id="bulkStake" type="number" min="${MIN_STAKE}" step="${STAKE_STEP}"
+               value="${combo ? comboStake : bulkStake}" />
+        ${combo ? '' : '<button type="button" class="ghost" id="bulkApply">전체 적용</button>'}
+      </div>
+      <div class="chips">${chips}</div>
+      ${combo ? '' : '<div class="dim" style="font-size:12px">담긴 픽 전부에 같은 금액을 넣습니다.</div>'}
+    </div>
+    ${combo
+      ? `<div class="slip-total">
+           <span>조합 배당 <span class="dim">${entries.length}경기</span></span>
+           <strong id="slipOdds">—</strong>
+         </div>`
+      : ''}
+    <div class="slip-total"><span>${combo ? '베팅액' : '합계'}</span><strong id="slipTotal">—</strong></div>
+    <div class="slip-total">
+      <span>적중 시 예상 수령 <span class="dim">수수료 ${(feeRate * 100).toFixed(0)}% 반영</span></span>
+      <strong id="slipPayout">—</strong>
+    </div>
+    <div id="slipHint" class="slip-hint"></div>
+    <div style="padding:0 18px 18px"><button id="submitSlip" style="width:100%">픽 등록</button></div>`;
+
+  updateTotals();
+}
+
+/** 금액 입력 중에는 전체를 다시 그리지 않고 합계·버튼만 갱신한다 (포커스 유지) */
+function updateTotals() {
   const submit = $('#submitSlip');
+  const entries = [...slip.values()];
+  if (!submit || !entries.length) return;
+
+  const combo = slipMode === 'combo';
+  let total;
+  let payout;
+  let problem;
+
+  if (combo) {
+    const cents = comboOddsCents(entries);
+    total = comboStake;
+    payout = payoutOf(comboStake, cents);
+    $('#slipOdds').textContent = (cents / 100).toFixed(2);
+    problem = entries.length < 2
+      ? '조합은 2경기 이상 담아야 합니다.'
+      : entries.length > MAX_LEGS
+        ? `조합은 최대 ${MAX_LEGS}경기까지 담을 수 있습니다.`
+        : cents > MAX_ODDS_CENTS
+          ? '조합 배당이 너무 큽니다(최대 9,999.99). 경기 수를 줄여주세요.'
+          : stakeProblem(comboStake);
+  } else {
+    total = entries.reduce((a, s) => a + Number(s.stake || 0), 0);
+    payout = entries.reduce(
+      (a, s) => a + payoutOf(Number(s.stake || 0), oddsCents(s.opt.odds)), 0);
+    problem = entries.map((s) => stakeProblem(Number(s.stake || 0))).find(Boolean) || '';
+  }
+
+  $('#slipTotal').textContent = won(total);
+  $('#slipPayout').textContent = won(payout);
+
   const ready = !!(me.session && me.profile);
-  submit.disabled = !ready;
+  $('#slipHint').textContent = ready ? problem : '';
+  submit.disabled = !ready || !!problem;
   submit.textContent = !me.session ? '로그인 후 등록 가능'
     : !me.profile ? '참가자 이름을 먼저 정하세요'
-    : `픽 ${slip.size}건 등록`;
+    : combo ? `조합 ${entries.length}경기 등록`
+      : `픽 ${entries.length}건 등록`;
 }
 
 /* ------------------------------------------------------------------ 등록 */
-async function submitSlip() {
+function submitSlip() {
+  return slipMode === 'combo' ? submitCombo() : submitSingles();
+}
+
+/** 조합: 티켓 한 장으로 등록된다. 다리 검증·배당 계산은 전부 서버(RPC)가 한다. */
+async function submitCombo() {
+  const btn = $('#submitSlip');
+  const entries = [...slip.values()];
+  btn.disabled = true;
+  $('#slipMsg').innerHTML = '';
+
+  const { data, error } = await sb.rpc('betgirl_place_combo', {
+    p_stake: comboStake,
+    p_legs: entries.map(({ ev, opt }) => ({ event_id: ev.id, code: opt.code })),
+  });
+
+  if (error) {
+    $('#slipMsg').innerHTML = `<div class="msg err">${esc(error.message)}</div>`;
+    btn.disabled = false;
+    return;
+  }
+
+  const odds = (comboOddsCents(entries) / 100).toFixed(2);
+  $('#slipMsg').innerHTML =
+    `<div class="msg ok">조합 ${entries.length}경기 등록 완료 (#${esc(String(data))} · 배당 ${odds})</div>`;
+  slip.clear();
+
+  await loadBoardRefresh();
+  refreshBalance();
+  renderSlip();
+}
+
+async function submitSingles() {
   const btn = $('#submitSlip');
   btn.disabled = true;
   $('#slipMsg').innerHTML = '';
 
   const entries = [...slip.values()];
-  const invalid = entries.filter(({ stake }) => Number(stake) % 100 !== 0 || Number(stake) < MIN_STAKE);
+  const invalid = entries.filter(({ stake }) => stakeProblem(Number(stake)));
   if (invalid.length) {
     $('#slipMsg').innerHTML =
-      `<div class="msg err">베팅은 최소 ${MIN_STAKE.toLocaleString('ko-KR')}벳, 100벳 단위로만 가능합니다.</div>`;
+      `<div class="msg err">베팅은 최소 ${MIN_STAKE.toLocaleString('ko-KR')}벳, ${STAKE_STEP}벳 단위로만 가능합니다.</div>`;
     btn.disabled = false;
     return;
   }
@@ -573,25 +724,85 @@ $('#slipBody').addEventListener('input', (e) => {
   if (!input) return;
   const entry = slip.get(Number(input.dataset.event));
   if (entry) entry.stake = Number(input.value);
-  const total = [...slip.values()].reduce((a, s) => a + Number(s.stake || 0), 0);
-  $('#slipTotal').textContent = won(total);
+  updateTotals();
 });
 
 $('#clearSlip').addEventListener('click', () => {
   slip.clear();
+  $('#slipMsg').innerHTML = '';
   renderMatches();
   renderSlip();
 });
 
-$('#submitSlip').addEventListener('click', submitSlip);
+/* 싱글 / 조합 전환 */
+$('#slipModes').addEventListener('click', (e) => {
+  const btn = e.target.closest('.slip-mode');
+  if (!btn || btn.dataset.mode === slipMode) return;
+  slipMode = btn.dataset.mode;
+  $('#slipMsg').innerHTML = '';
+  renderSlip();
+});
+
+/** 일괄 적용: 싱글이면 담긴 픽 전부에, 조합이면 티켓 한 장의 베팅액으로 넣는다. */
+function applyStake(v) {
+  if (slipMode === 'combo') {
+    comboStake = v;
+    updateTotals();
+    return;
+  }
+  bulkStake = v;
+  for (const s of slip.values()) s.stake = v;
+  renderSlip();
+}
+
+// 슬립 하단(#slipFoot)은 renderSlip 이 매번 다시 그리므로 컨테이너에 위임한다.
+$('#slipFoot').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (chip) {
+    const v = Number(chip.dataset.amount);
+    $('#bulkStake').value = v;
+    applyStake(v);
+    return;
+  }
+  if (e.target.closest('#bulkApply')) {
+    applyStake(Number($('#bulkStake').value));
+    return;
+  }
+  if (e.target.closest('#submitSlip')) submitSlip();
+});
+
+$('#slipFoot').addEventListener('input', (e) => {
+  if (!e.target.closest('#bulkStake')) return;
+  const v = Number(e.target.value);
+  if (slipMode === 'combo') {
+    comboStake = v;
+    updateTotals();
+  } else {
+    bulkStake = v;                      // '전체 적용'을 눌러야 픽에 반영된다
+  }
+});
+
 $('#fRound').addEventListener('change', renderMatchesReset);
 $('#fView').addEventListener('change', renderMatchesReset);
+
+/** 적중 수수료율은 공개 정책 테이블에서 읽는다 (예상 수령액 표시가 정산과 어긋나지 않게). */
+async function loadFeeRate() {
+  const { data } = await sb
+    .from('betgirl_fee_policy')
+    .select('rate')
+    .lte('effective_from', new Date().toISOString())
+    .order('effective_from', { ascending: false })
+    .order('seq', { ascending: false })
+    .limit(1);
+  if (data?.length) feeRate = Number(data[0].rate);
+}
 
 /* ------------------------------------------------------------------ 시작 */
 (async () => {
   initNav('/');
   me = await currentUser();
   renderAccount();
+  await loadFeeRate();
   await loadBoard();
   renderSlip();
 })();

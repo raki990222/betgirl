@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="테이크아웃 커피 컵">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2130"/><stop offset="1" stop-color="#0c0f16"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.62">
+      <stop offset="0" stop-color="#ff4d8d" stop-opacity=".18"/><stop offset="1" stop-color="#ff4d8d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbe6a6"/><stop offset=".55" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6a12"/>
+    </linearGradient>
+    <linearGradient id="cup" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ddd7c9"/><stop offset=".42" stop-color="#faf7f0"/><stop offset="1" stop-color="#cfc9ba"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <ellipse cx="160" cy="104" rx="126" ry="86" fill="url(#glow)"/>
+
+  <g stroke="#ffffff" stroke-opacity=".26" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M141 54c7-8-7-14 0-22"/>
+    <path d="M160 48c7-8-7-14 0-22"/>
+    <path d="M179 54c7-8-7-14 0-22"/>
+  </g>
+
+  <path d="M124 82h72l-8 76a6 6 0 0 1-6 5h-44a6 6 0 0 1-6-5z" fill="url(#cup)"/>
+  <path d="M126.4 105h67.2l-3.6 34h-60z" fill="url(#gold)"/>
+  <rect x="134" y="115" width="52" height="10" rx="5" fill="#0c0f16" fill-opacity=".32"/>
+  <path d="M114 66h92a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5h-92a5 5 0 0 1-5-5v-8a5 5 0 0 1 5-5z" fill="#232838"/>
+  <path d="M109 71a5 5 0 0 1 5-5h92a5 5 0 0 1 5 5z" fill="url(#gold)" fill-opacity=".85"/>
+  <rect x="146" y="60" width="28" height="7" rx="3.5" fill="#2c3243"/>
+</svg>

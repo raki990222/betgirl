@@ -4,6 +4,7 @@ import { sb, initNav, selectAll, verifyLedger, checkAnchor, won, signedWon, pct,
 const $ = (s) => document.querySelector(s);
 
 let rows = [];
+let legsByBet = new Map();      // 조합 티켓 seq → 다리 목록
 
 /* ------------------------------------------------------------------ 로드 */
 async function load() {
@@ -14,6 +15,16 @@ async function load() {
       `<span style="color:var(--lose)">원장을 불러오지 못했습니다: ${esc(e.message)}</span>`;
     return;
   }
+
+  // 조합 티켓의 다리 목록 (018 이전 DB 에는 뷰가 없으므로 실패해도 원장은 그대로 보인다)
+  try {
+    const legs = await selectAll('betgirl_legs', 'seq,bet_seq,leg_no,match_label,pick,odds,leg_status');
+    legsByBet = new Map();
+    for (const l of legs.sort((a, b) => a.leg_no - b.leg_no)) {
+      if (!legsByBet.has(l.bet_seq)) legsByBet.set(l.bet_seq, []);
+      legsByBet.get(l.bet_seq).push(l);
+    }
+  } catch { legsByBet = new Map(); }
 
   renderSummary();
   await renderStats();
@@ -233,13 +244,25 @@ function renderLedger() {
       const sproof = sproofUrl
         ? ` · <a href="${esc(sproofUrl)}" target="_blank" rel="noopener noreferrer">정산</a>`
         : '';
+      const legs = legsByBet.get(r.seq);
+      const pickCell = legs?.length
+        ? `<div class="legs">${legs
+            .map(
+              (l) => `<div class="leg ${esc(l.leg_status)}">
+                ${esc(l.match_label)} · ${esc(l.pick)}
+                <span class="dim">${Number(l.odds).toFixed(2)}</span>
+              </div>`
+            )
+            .join('')}</div>`
+        : `<div class="dim">${esc(r.market)} · ${esc(r.pick)}${r.league ? ' · ' + esc(r.league) : ''}</div>`;
+
       return `<tr>
         <td class="dim">${r.seq}</td>
         <td>${esc(kst(r.placed_at))}<div class="dim">${esc(r.event_key)}</div></td>
         <td>${esc(r.bettor)}</td>
         <td>
           <strong>${esc(r.match_label)}</strong>
-          <div class="dim">${esc(r.market)} · ${esc(r.pick)}${r.league ? ' · ' + esc(r.league) : ''}</div>
+          ${pickCell}
         </td>
         <td class="num">${won(r.stake)}</td>
         <td class="num">${Number(r.odds).toFixed(2)}</td>

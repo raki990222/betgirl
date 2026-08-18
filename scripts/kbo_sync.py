@@ -124,8 +124,9 @@ def compute_odds(home_code: str, away_code: str, wra: dict[str, float]) -> tuple
 
 
 def naver_games() -> list[dict]:
-    # 어제·그제 끝난 경기(심야 종료·크론 누락 캐치업)도 정산해야 하므로 -2일부터 본다
-    start = datetime.now(KST).date() - timedelta(days=2)
+    # 캐치업 창 -7일: 러너·맥이 며칠 통째로 죽어도(주말 정전 등) 복구가 창 밖으로 새지 않게.
+    # (2026-08-16~17 실사고: 클라우드 시크릿 미등록+맥 꺼짐 겹침 → -2일 창이 8/14~15를 놓침)
+    start = datetime.now(KST).date() - timedelta(days=7)
     end = datetime.now(KST).date() + timedelta(days=SYNC_DAYS_AHEAD)
     q = urllib.parse.urlencode({
         "fields": "basic,schedule,baseball",
@@ -305,6 +306,18 @@ def main() -> int:
         sb(f"betgirl_events?id=eq.{ev['id']}", key, "PATCH", patch, prefer="return=minimal")
         refunded = len([p for p in picks if p["seq"] not in done])
         print(f"  취소 처리: {ev['home']} vs {ev['away']} (환급 {refunded}건)")
+
+    # 조합 픽은 모든 다리의 결과가 확정된 뒤에 정산된다. 봇 토큰 경로는 정산 RPC 안에서
+    # 스윕이 함께 돌지만, service key 폴백으로 결과를 직접 기록한 경우엔 따로 한 번 돌린다.
+    if not token and key:
+        try:
+            r = sb("rpc/betgirl_settle_combos", key, "POST", {"p_proof_url": None})
+            row = (r[0] if isinstance(r, list) else r) or {}
+            if row.get("settled_count"):
+                print(f"  조합 정산: {row['settled_count']}건 "
+                      f"(적중 {row['win_count']}, 지급 {row['total_payout']}벳)")
+        except Exception as e:  # noqa: BLE001
+            print(f"  ⚠️ 조합 정산 실패: {e}")
 
     return 0
 

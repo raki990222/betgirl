@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="피자 라지 한 판">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2130"/><stop offset="1" stop-color="#0c0f16"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.62">
+      <stop offset="0" stop-color="#ff4d8d" stop-opacity=".2"/><stop offset="1" stop-color="#ff4d8d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cheese" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd873"/><stop offset="1" stop-color="#eda93a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <ellipse cx="160" cy="104" rx="126" ry="86" fill="url(#glow)"/>
+
+  <path d="M160 172 L106 76 A62 62 0 0 1 214 76 Z" fill="url(#cheese)"/>
+  <path d="M106 76 A62 62 0 0 1 214 76" fill="none" stroke="#c8892f" stroke-width="17" stroke-linecap="round"/>
+  <path d="M106 76 A62 62 0 0 1 214 76" fill="none" stroke="#e6ae5c" stroke-width="9" stroke-linecap="round"/>
+
+  <g fill="#cf3f3a">
+    <circle cx="136" cy="102" r="10"/><circle cx="182" cy="100" r="9"/>
+    <circle cx="160" cy="132" r="9"/><circle cx="152" cy="88" r="7.5"/>
+    <circle cx="176" cy="126" r="6.5"/>
+  </g>
+  <g fill="#8f2b27" fill-opacity=".45">
+    <circle cx="136" cy="102" r="3"/><circle cx="182" cy="100" r="2.6"/><circle cx="160" cy="132" r="2.6"/>
+  </g>
+  <g fill="#4f9c4a">
+    <ellipse cx="148" cy="116" rx="7" ry="4" transform="rotate(-24 148 116)"/>
+    <ellipse cx="192" cy="86" rx="6" ry="3.5" transform="rotate(18 192 86)"/>
+    <ellipse cx="122" cy="86" rx="6" ry="3.5" transform="rotate(-14 122 86)"/>
+    <ellipse cx="166" cy="152" rx="5.5" ry="3.2" transform="rotate(30 166 152)"/>
+  </g>
+  <path d="M160 172 L106 76" fill="none" stroke="#c8892f" stroke-width="2.5" stroke-opacity=".45"/>
+  <path d="M160 172 L214 76" fill="none" stroke="#c8892f" stroke-width="2.5" stroke-opacity=".45"/>
+</svg>

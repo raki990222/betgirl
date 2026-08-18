@@ -8,6 +8,23 @@ let seedReady = false;
 
 const MODE_LABEL = { sure: '확정', half: '도전 50%', ten: '도전 10%' };
 
+const ITEM_FALLBACK = '/items/placeholder.svg';
+
+/**
+ * 상품 이미지 경로. 같은 출처의 절대경로(/items/…)나 https URL만 통과시킨다.
+ * `//evil.com/x.png`(프로토콜 상대)·`javascript:` 같은 값이 DB에 들어와도 렌더되지 않는다.
+ */
+const itemImage = (u) => {
+  const s = String(u ?? '').trim();
+  if (!s) return ITEM_FALLBACK;
+  if (s.startsWith('/') && !s.startsWith('//')) return s;
+  try {
+    return new URL(s).protocol === 'https:' ? s : ITEM_FALLBACK;
+  } catch {
+    return ITEM_FALLBACK;
+  }
+};
+
 // SQL 과 문자 그대로 같은 비용을 낸다: round(cost * ratio / 100) * 100, 반올림은 half-away.
 // float 오차를 피하려 ratio 를 정수 밀리(0.580→580)로 받아 정수 연산만 쓴다.
 const modeCost = (cost, ratioMilli) =>
@@ -135,6 +152,8 @@ async function loadItems() {
             .join('')
         : '';
       return `<div class="item-card">
+        <img class="item-thumb" src="${esc(itemImage(i.image_url))}" alt=""
+             width="320" height="200" loading="lazy" decoding="async">
         <h3>${esc(i.name)}</h3>
         ${i.note ? `<div class="dim" style="font-size:12px">${esc(i.note)}</div>` : ''}
         <div class="item-cost">${won(i.cost)}</div>
@@ -148,6 +167,16 @@ async function loadItems() {
     .join('');
   $('#itemsNote').textContent = `${data.length}개 상품${gacha ? ' · 확률 도전 가능' : ''}`;
 }
+
+// 이미지가 404 나면 기본 이미지로 대체한다 (error 는 버블링하지 않으므로 캡처 단계로 받는다).
+$('#items').addEventListener(
+  'error',
+  (e) => {
+    const img = e.target;
+    if (img.tagName === 'IMG' && !img.src.endsWith(ITEM_FALLBACK)) img.src = ITEM_FALLBACK;
+  },
+  true
+);
 
 $('#items').addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-item]');

@@ -73,21 +73,22 @@
           <div class="spacer"></div>
           <button class="ghost" id="clearSlip" hidden>비우기</button>
         </div>
+        <div class="slip-modes" id="slipModes" role="tablist" aria-label="픽 등록 방식">
+          <button type="button" class="slip-mode on" data-mode="single">
+            싱글<span class="dim">경기마다 따로</span>
+          </button>
+          <button type="button" class="slip-mode" data-mode="combo">
+            조합<span class="dim">전부 맞아야 적중</span>
+          </button>
+        </div>
         <div id="slipMsg" style="padding:0 18px"></div>
         <div id="slipBody"><div class="empty">경기에서 배당을 눌러 픽을 담으세요.</div></div>
-        <div id="slipFoot" hidden>
-          <div class="slip-total">
-            <span>합계</span>
-            <strong id="slipTotal">0벳</strong>
-          </div>
-          <div style="padding:0 18px 18px">
-            <button id="submitSlip" style="width:100%">픽 등록</button>
-          </div>
-        </div>
+        <div id="slipFoot" hidden></div>
         <div class="note">
-          등록하면 되돌릴 수 없습니다. 픽은 사이트 포인트 <strong>벳</strong>으로만 겁니다 —
-          벳은 현금이 아니며 충전·환전되지 않습니다. 등록된 픽과 정산은 전부
-          <a href="/ledger">공개 원장</a>에 남습니다.
+          등록하면 되돌릴 수 없습니다. <strong>조합</strong>은 담은 경기가 <strong>전부 적중</strong>해야
+          지급되며, 취소된 경기는 배당 1.00으로 빠집니다(전부 취소면 원금 반환). 픽은 사이트 포인트
+          <strong>벳</strong>으로만 겁니다 — 벳은 현금이 아니며 충전·환전되지 않습니다.
+          등록된 픽과 정산은 전부 <a href="/ledger">공개 원장</a>에 남습니다.
         </div>
       </section>
     </div>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="아이스크림 콘">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2130"/><stop offset="1" stop-color="#0c0f16"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.62">
+      <stop offset="0" stop-color="#ff4d8d" stop-opacity=".2"/><stop offset="1" stop-color="#ff4d8d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cone" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0c877"/><stop offset=".5" stop-color="#d4a049"/><stop offset="1" stop-color="#a97a25"/>
+    </linearGradient>
+    <clipPath id="coneClip"><path d="M134 108h52l-26 66z"/></clipPath>
+  </defs>
+
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <ellipse cx="160" cy="104" rx="126" ry="86" fill="url(#glow)"/>
+
+  <path d="M134 108h52l-26 66z" fill="url(#cone)"/>
+  <g clip-path="url(#coneClip)" stroke="#7d5713" stroke-opacity=".45" stroke-width="2">
+    <path d="M120 100l70 90M140 92l70 90M100 118l70 90M160 88l70 90"/>
+    <path d="M200 100l-70 90M220 118l-70 90M180 92l-70 90M240 130l-70 90"/>
+  </g>
+
+  <circle cx="143" cy="98" r="23" fill="#ff8fb6"/>
+  <circle cx="177" cy="96" r="22" fill="#f6ead6"/>
+  <circle cx="160" cy="76" r="21" fill="#ff6fa5"/>
+  <circle cx="152" cy="68" r="6" fill="#ffffff" fill-opacity=".38"/>
+  <path d="M160 55v-8" stroke="#4f7c3a" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="160" cy="49" r="7" fill="#d2453f"/>
+  <circle cx="158" cy="47" r="2.2" fill="#ffffff" fill-opacity=".5"/>
+</svg>
