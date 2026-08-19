@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="떡볶이 한 그릇">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2130"/><stop offset="1" stop-color="#0c0f16"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.62">
+      <stop offset="0" stop-color="#ff4d8d" stop-opacity=".2"/><stop offset="1" stop-color="#ff4d8d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bowl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f7fb"/><stop offset="1" stop-color="#c8d0dd"/>
+    </linearGradient>
+    <linearGradient id="sauce" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e0503f"/><stop offset="1" stop-color="#b12b23"/>
+    </linearGradient>
+    <g id="cake">
+      <rect x="-8" y="-19" width="16" height="38" rx="8" fill="#fdf8ee"/>
+      <rect x="-8" y="-19" width="6" height="38" rx="3" fill="#ffffff" fill-opacity=".7"/>
+      <rect x="-8" y="6" width="16" height="13" rx="6" fill="#e8bfae" fill-opacity=".55"/>
+    </g>
+  </defs>
+
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <ellipse cx="160" cy="104" rx="126" ry="86" fill="url(#glow)"/>
+
+  <g stroke="#ffffff" stroke-opacity=".2" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M138 60c7-8-7-14 0-22"/>
+    <path d="M160 54c7-8-7-14 0-22"/>
+    <path d="M182 60c7-8-7-14 0-22"/>
+  </g>
+
+  <ellipse cx="160" cy="172" rx="74" ry="10" fill="#0c0f16" fill-opacity=".5"/>
+  <path d="M88 98h144l-15 60a12 12 0 0 1-11.7 9H114.7a12 12 0 0 1-11.7-9z" fill="url(#bowl)"/>
+  <ellipse cx="160" cy="98" rx="72" ry="17" fill="#98a3b5"/>
+  <ellipse cx="160" cy="99" rx="65" ry="14" fill="url(#sauce)"/>
+
+  <use href="#cake" transform="translate(133,92) rotate(-24)"/>
+  <use href="#cake" transform="translate(160,86) rotate(8)"/>
+  <use href="#cake" transform="translate(188,93) rotate(28)"/>
+  <path d="M108 98l17-9 17 9-17 9z" fill="#e8a33c"/>
+  <path d="M196 103l16-8 16 8-16 8z" fill="#e8a33c"/>
+  <g fill="#4fae5c">
+    <rect x="146" y="104" width="13" height="5" rx="2.5"/>
+    <rect x="170" y="98" width="11" height="5" rx="2.5" transform="rotate(-14 175 100)"/>
+    <rect x="126" y="104" width="10" height="5" rx="2.5" transform="rotate(12 131 106)"/>
+  </g>
+  <path d="M88 98h144l-3 12H91z" fill="#0c0f16" fill-opacity=".1"/>
+</svg>

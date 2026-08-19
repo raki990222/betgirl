@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="카페 라떼 한 잔">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2130"/><stop offset="1" stop-color="#0c0f16"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.62">
+      <stop offset="0" stop-color="#ff4d8d" stop-opacity=".18"/><stop offset="1" stop-color="#ff4d8d" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="cup">
+      <path d="M122 76h76l-8 78a10 10 0 0 1-10 9h-40a10 10 0 0 1-10-9z"/>
+    </clipPath>
+  </defs>
+
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <ellipse cx="160" cy="104" rx="126" ry="86" fill="url(#glow)"/>
+
+  <g stroke="#ffffff" stroke-opacity=".22" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M143 56c7-8-7-14 0-22"/>
+    <path d="M162 50c7-8-7-14 0-22"/>
+    <path d="M181 56c7-8-7-14 0-22"/>
+  </g>
+
+  <ellipse cx="160" cy="170" rx="66" ry="10" fill="#0c0f16" fill-opacity=".5"/>
+  <ellipse cx="160" cy="166" rx="60" ry="9" fill="#2a3040"/>
+
+  <path d="M199 100h11a20 20 0 0 1 0 40h-11" fill="none" stroke="#cfd6e4" stroke-width="8" stroke-linecap="round"/>
+
+  <g clip-path="url(#cup)">
+    <rect x="118" y="112" width="84" height="66" fill="#6b4423"/>
+    <rect x="118" y="94" width="84" height="20" fill="#c79a68"/>
+    <rect x="118" y="72" width="84" height="24" fill="#f6efe2"/>
+    <path d="M160 80c-4-5-13-3-13 4 0 6 8 10 13 13 5-3 13-7 13-13 0-7-9-9-13-4z" fill="#c08c56" fill-opacity=".75"/>
+  </g>
+  <path d="M122 76h76l-8 78a10 10 0 0 1-10 9h-40a10 10 0 0 1-10-9z"
+        fill="none" stroke="#f0f3f8" stroke-opacity=".5" stroke-width="3"/>
+  <rect x="132" y="120" width="10" height="30" rx="5" fill="#ffffff" fill-opacity=".14"/>
+</svg>

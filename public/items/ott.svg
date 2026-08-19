@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="영상 스트리밍 이용권">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2130"/><stop offset="1" stop-color="#0c0f16"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.62">
+      <stop offset="0" stop-color="#ff4d8d" stop-opacity=".2"/><stop offset="1" stop-color="#ff4d8d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbe6a6"/><stop offset=".55" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6a12"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#243049"/><stop offset="1" stop-color="#0e1420"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <ellipse cx="160" cy="104" rx="126" ry="86" fill="url(#glow)"/>
+
+  <rect x="112" y="158" width="96" height="7" rx="3.5" fill="#39415a"/>
+  <path d="M143 140h34l7 20h-48z" fill="#2c3346"/>
+
+  <rect x="52" y="34" width="216" height="122" rx="13" fill="#39415a"/>
+  <rect x="56" y="38" width="208" height="114" rx="10" fill="url(#screen)"/>
+  <rect x="56" y="38" width="208" height="114" rx="10" fill="none" stroke="url(#gold)" stroke-opacity=".55" stroke-width="2"/>
+
+  <g fill="#ffffff" fill-opacity=".07">
+    <rect x="70" y="52" width="60" height="7" rx="3.5"/>
+    <rect x="70" y="66" width="38" height="7" rx="3.5"/>
+    <rect x="212" y="128" width="40" height="7" rx="3.5"/>
+  </g>
+
+  <circle cx="160" cy="95" r="34" fill="#0c0f16" fill-opacity=".45"/>
+  <circle cx="160" cy="95" r="34" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <path d="M151 78l30 17-30 17z" fill="url(#gold)"/>
+
+  <rect x="70" y="138" width="120" height="5" rx="2.5" fill="#ffffff" fill-opacity=".14"/>
+  <rect x="70" y="138" width="44" height="5" rx="2.5" fill="#ff4d8d"/>
+  <circle cx="114" cy="140.5" r="5" fill="#ff4d8d"/>
+</svg>

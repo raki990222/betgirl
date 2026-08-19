@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="햄버거 세트">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2130"/><stop offset="1" stop-color="#0c0f16"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.62">
+      <stop offset="0" stop-color="#ff4d8d" stop-opacity=".2"/><stop offset="1" stop-color="#ff4d8d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0bd76"/><stop offset="1" stop-color="#c8823c"/>
+    </linearGradient>
+    <linearGradient id="fry" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd979"/><stop offset="1" stop-color="#e0a63a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="320" height="200" fill="url(#bg)"/>
+  <ellipse cx="160" cy="104" rx="126" ry="86" fill="url(#glow)"/>
+  <ellipse cx="150" cy="172" rx="80" ry="9" fill="#0c0f16" fill-opacity=".5"/>
+
+  <g transform="translate(-16,0)">
+    <path d="M96 100a64 44 0 0 1 128 0z" fill="url(#bun)"/>
+    <g fill="#fdf1d8" fill-opacity=".85">
+      <ellipse cx="140" cy="80" rx="6" ry="3.5" transform="rotate(-18 140 80)"/>
+      <ellipse cx="164" cy="70" rx="6" ry="3.5"/>
+      <ellipse cx="188" cy="80" rx="6" ry="3.5" transform="rotate(18 188 80)"/>
+    </g>
+    <path d="M94 100h132a7 7 0 0 1 0 14c-14 0-18-6-30-6s-16 8-30 8-18-8-30-8-16 6-30 6a7 7 0 0 1 0-14z" fill="#59b35e"/>
+    <path d="M100 114h120l14 16c-12 4-20-6-30-2s-14 8-26 4-16-8-28-4-18 6-30 0z" fill="#f2c33e"/>
+    <rect x="96" y="126" width="128" height="20" rx="10" fill="#7a4a26"/>
+    <rect x="96" y="126" width="128" height="8" rx="4" fill="#95602f"/>
+    <path d="M100 146h120a10 10 0 0 1 9.6 12.8A10 10 0 0 1 220 166h-120a10 10 0 0 1-9.6-7.2A10 10 0 0 1 100 146z" fill="url(#bun)"/>
+  </g>
+
+  <g transform="translate(232,96)">
+    <g fill="url(#fry)">
+      <rect x="-4" y="-34" width="11" height="46" rx="4" transform="rotate(-12 1 -11)"/>
+      <rect x="8" y="-40" width="11" height="52" rx="4"/>
+      <rect x="20" y="-32" width="11" height="44" rx="4" transform="rotate(11 25 -10)"/>
+    </g>
+    <path d="M-8 4h46l-6 56a6 6 0 0 1-6 5H0a6 6 0 0 1-6-5z" fill="#d2453f"/>
+    <path d="M-6 20h42l-1.6 14H-4.4z" fill="#ffffff" fill-opacity=".85"/>
+  </g>
+</svg>
