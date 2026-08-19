@@ -2,7 +2,7 @@
 """betgirl KBO 경기 자동 연동 + 자동 정산.
 
 네이버 스포츠 공식 일정 API(공개)에서 KBO 경기를 가져와:
-  1) 새 경기를 보드에 게시한다 (기본 배당 1.85/1.85 — 운영자가 open 동안 조정 가능)
+  1) 새 경기를 보드에 게시한다 (배당=팀 전력·선발 ERA·최근 폼·상대전적 경기별 산출)
   2) 시작 시각이 바뀐 open 경기를 갱신한다
   3) 취소(폭염·우천 등)된 경기를 자동 처리한다 — 전액 환급 + '취소' 표시 + 증빙
   4) 종료된 경기(RESULT)를 자동 정산한다 — 승패 확정·수수료·결과 표시·증빙(네이버 결과 링크).
@@ -40,7 +40,11 @@ KST = timezone(timedelta(hours=9))
 SYNC_DAYS_AHEAD = 7
 HOME_ADVANTAGE = 0.030     # KBO 홈 승률 보정
 MARGIN = 0.05              # 북 마진(오버라운드) — 두 배당 합 implied ≈ 1.05
-ODDS_MIN, ODDS_MAX = 1.10, 6.00
+ODDS_MIN, ODDS_MAX = 1.25, 3.50   # 실제 KBO 승패 시장(betman 등) 통상 범위로 클램프
+LEAGUE_ERA = 4.60          # 리그 평균 자책점 근사 — 소표본 선발 ERA 를 이쪽으로 수축
+PRIOR_INN = 30.0           # ERA 수축 강도(가상 이닝)
+# 확률 가중치: 팀 전력(log5) / 선발 ERA / 최근 5경기 / 시즌 상대전적
+W_TEAM, W_STARTER, W_FORM, W_H2H = 0.50, 0.30, 0.12, 0.08
 
 TEAMS = {
     "LG": "LG 트윈스", "OB": "두산 베어스", "HT": "KIA 타이거즈", "SS": "삼성 라이온즈",
@@ -106,11 +110,79 @@ def standings() -> dict[str, float]:
         return {}
 
 
-def compute_odds(home_code: str, away_code: str, wra: dict[str, float]) -> tuple[float, float]:
-    """시즌 승률 + 홈 어드밴티지로 승패 배당을 산출한다. 두 배당은 절대 같지 않다."""
-    hw = wra.get(home_code, 0.5) + HOME_ADVANTAGE
-    aw = wra.get(away_code, 0.5)
-    p_home = hw / (hw + aw)
+def game_preview(game_id: str) -> dict:
+    """경기 프리뷰(선발 성적·최근 5경기·상대전적). 실패하면 빈 dict → 팀 전력만으로 산출."""
+    try:
+        d = http(f"https://api-gw.sports.naver.com/schedule/games/{game_id}/preview",
+                 {"User-Agent": "Mozilla/5.0"})
+        return (d.get("result") or {}).get("previewData") or {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _innings(v) -> float:
+    """야구식 이닝 표기(.1=⅓, .2=⅔)를 실수로."""
+    try:
+        v = float(v)
+    except (TypeError, ValueError):
+        return 0.0
+    frac = round((v % 1) * 10)
+    return int(v) + (frac / 3 if frac in (1, 2) else 0.0)
+
+
+def _starter_era(starter: dict | None) -> float | None:
+    """선발의 시즌 ERA 를 이닝 수로 신뢰도 수축한 값. 선발 미발표면 None."""
+    st = (starter or {}).get("currentSeasonStats") or {}
+    inn = _innings(st.get("inn"))
+    try:
+        era = float(st.get("era"))
+    except (TypeError, ValueError):
+        return None
+    if inn <= 0:
+        return None
+    return (era * inn + LEAGUE_ERA * PRIOR_INN) / (inn + PRIOR_INN)
+
+
+def _recent_form(games: list | None) -> float | None:
+    """최근 5경기 승률(무=0.5)."""
+    pts = {"승": 1.0, "무": 0.5, "패": 0.0}
+    vals = [pts[g["result"]] for g in (games or []) if g.get("result") in pts]
+    return sum(vals) / len(vals) if vals else None
+
+
+def compute_odds(home_code: str, away_code: str, wra: dict[str, float],
+                 preview: dict) -> tuple[float, float]:
+    """경기별 승패 배당 — 실제 북(betman 등)이 가격에 반영하는 요소들의 가중 평균.
+
+    팀 전력(시즌 승률 log5 + 홈 어드밴티지)을 바탕으로 그 경기의 선발투수 ERA·
+    최근 5경기 폼·시즌 상대전적을 섞는다. 같은 3연전이라도 선발이 달라 배당이
+    경기마다 달라진다. 프리뷰가 없으면(원거리 일정) 팀 전력만으로 내고, 선발이
+    발표되면 정기 배당 갱신(to_reodds)이 자동 반영한다.
+    """
+    hw = min(max(wra.get(home_code, 0.5) + HOME_ADVANTAGE, 0.05), 0.95)
+    aw = min(max(wra.get(away_code, 0.5), 0.05), 0.95)
+    p_team = hw * (1 - aw) / (hw * (1 - aw) + aw * (1 - hw))   # log5
+    parts = [(W_TEAM, p_team)]
+
+    he = _starter_era(preview.get("homeStarter"))
+    ae = _starter_era(preview.get("awayStarter"))
+    if he and ae:
+        parts.append((W_STARTER, ae / (he + ae)))              # ERA 낮은 쪽이 유리
+
+    hf = _recent_form(preview.get("homeTeamPreviousGames"))
+    af = _recent_form(preview.get("awayTeamPreviousGames"))
+    if hf is not None and af is not None:
+        parts.append((W_FORM, (hf + (1 - af)) / 2))
+
+    vs = preview.get("seasonVsResult") or {}
+    try:
+        h2h_w, h2h_l = int(vs.get("hw")), int(vs.get("hl"))
+    except (TypeError, ValueError):
+        h2h_w = h2h_l = 0
+    if h2h_w + h2h_l >= 4:                                     # 표본 4경기부터, 수축(+3/+6)
+        parts.append((W_H2H, (h2h_w + 3) / (h2h_w + h2h_l + 6)))
+
+    p_home = sum(w * v for w, v in parts) / sum(w for w, _ in parts)
     p_away = 1 - p_home
 
     def odds(p: float) -> float:
@@ -118,7 +190,7 @@ def compute_odds(home_code: str, away_code: str, wra: dict[str, float]) -> tuple
         return round(min(max(o, ODDS_MIN), ODDS_MAX), 2)
 
     oh, oa = odds(p_home), odds(p_away)
-    if oh == oa:                                  # 이론상 동률 방지(승률 동일 팀)
+    if oh == oa:                                  # 표기 동률 방지
         oh, oa = round(oh - 0.01, 2), round(oa + 0.01, 2)
     return oh, oa
 
@@ -178,7 +250,6 @@ def main() -> int:
         date = g["gameDate"]
         start_iso = f"{g['gameDateTime']}+09:00"
         proof = f"https://m.sports.naver.com/game/{g['gameId']}"
-        oh, oa = compute_odds(g["homeTeamCode"], g["awayTeamCode"], wra)
         ev = find_event(home, away, date)
 
         if g["cancel"]:
@@ -194,6 +265,10 @@ def main() -> int:
 
         if g["statusCode"] != "BEFORE":     # 진행 중 경기는 생성 대상 아님
             continue
+
+        # 배당은 시작 전 경기에만 필요 — 경기별 프리뷰(선발·폼·상대전적)를 반영
+        oh, oa = compute_odds(g["homeTeamCode"], g["awayTeamCode"], wra,
+                              game_preview(g["gameId"]))
 
         options = [
             {"code": "HOME", "label": f"{home} 승", "odds": oh},
@@ -212,7 +287,7 @@ def main() -> int:
                 "market": "승패",
                 "options": options,
                 "official_url": proof,
-                "note": f"{g['stadium']} · 네이버 스포츠 공식 일정 자동 연동 · 배당=시즌 승률+홈 어드밴티지 산출",
+                "note": f"{g['stadium']} · 네이버 스포츠 공식 일정 자동 연동 · 배당=팀 전력·선발 ERA·최근 폼·상대전적 산출(시작 전 자동 갱신)",
             })
         elif ev["status"] == "open":
             if datetime.fromisoformat(ev["start_at"]) != datetime.fromisoformat(start_iso):
