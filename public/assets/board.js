@@ -21,9 +21,6 @@ let bulkStake = DEFAULT_STAKE;          // 싱글 일괄 적용 금액 (새 픽�
 let comboStake = DEFAULT_STAKE;         // 조합 티켓 한 장의 베팅액
 let feeRate = 0.05;                     // 적중 수수료 — betgirl_fee_policy 에서 로드
 
-const MATCH_LIMIT_STEP = 5;      // 처음·더보기당 노출 경기 수
-let matchLimit = MATCH_LIMIT_STEP;
-
 /** ?invite=CODE 초대 링크로 들어오면 코드를 저장해 가입·참가 등록에 자동 채움 */
 const urlInvite = new URLSearchParams(location.search).get('invite');
 const inviteCode =
@@ -367,27 +364,17 @@ function renderMatches() {
     return pa === 0 ? da.localeCompare(db) : db.localeCompare(da);
   });
 
-  // 처음엔 matchLimit 개까지만 노출하고, 나머지는 '더보기'로 펼친다.
-  const total = ordered.reduce((a, [, evs]) => a + evs.length, 0);
-  let shown = 0;
+  // 상단 회차 필터가 있으므로 노출 제한 없이 전부 그린다.
   let html = '';
   for (const [roundKey, evs] of ordered) {
-    if (shown >= matchLimit) break;
     const day = dayOf(evs);
     const tag =
       day === todayKey ? '<span class="badge pending">오늘</span>'
       : day < todayKey ? '<span class="badge void">종료</span>'
       : '';
     const sorted = evs.slice().sort((x, y) => new Date(x.start_at) - new Date(y.start_at));
-    const slice = sorted.slice(0, matchLimit - shown);
-    shown += slice.length;
     html += `<div class="round-head">${esc(roundKey)} <span class="dim">${evs.length}경기</span> ${tag}</div>`;
-    html += slice.map(matchCard).join('');
-  }
-
-  if (shown < total) {
-    html += `<button class="ghost" id="moreMatches" style="width:100%;margin:14px 0 4px">
-      경기 더보기 (${total - shown}개 더)</button>`;
+    html += sorted.map(matchCard).join('');
   }
   $('#matches').innerHTML = html;
 }
@@ -695,21 +682,10 @@ async function loadBoardRefresh() {
 
 /* ------------------------------------------------------------------ 이벤트 */
 $('#matches').addEventListener('click', (e) => {
-  if (e.target.closest('#moreMatches')) {
-    matchLimit += MATCH_LIMIT_STEP;
-    renderMatches();
-    return;
-  }
   const btn = e.target.closest('button.opt');
   if (!btn || btn.disabled) return;
   toggleOption(Number(btn.dataset.event), btn.dataset.code);
 });
-
-// 필터를 바꾸면 노출 개수를 처음으로 되돌린다
-function renderMatchesReset() {
-  matchLimit = MATCH_LIMIT_STEP;
-  renderMatches();
-}
 
 $('#slipBody').addEventListener('click', (e) => {
   const x = e.target.closest('[data-remove]');
@@ -782,8 +758,8 @@ $('#slipFoot').addEventListener('input', (e) => {
   }
 });
 
-$('#fRound').addEventListener('change', renderMatchesReset);
-$('#fView').addEventListener('change', renderMatchesReset);
+$('#fRound').addEventListener('change', () => renderMatches());
+$('#fView').addEventListener('change', () => renderMatches());
 
 /** 적중 수수료율은 공개 정책 테이블에서 읽는다 (예상 수령액 표시가 정산과 어긋나지 않게). */
 async function loadFeeRate() {
