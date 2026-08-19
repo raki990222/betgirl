@@ -315,7 +315,8 @@ async function loadBoard() {
     $('#matches').innerHTML = `<div class="empty" style="color:var(--lose)">${esc(error.message)}</div>`;
     return;
   }
-  board = data;
+  // 'TEST ' 회차 = 배포 검증용 가짜 경기 — 보드에선 숨긴다 (원장·API에는 그대로 남아 검증 가능)
+  board = data.filter((e) => !String(e.round_key).startsWith('TEST '));
 
   const rounds = [...new Set(board.map((e) => e.round_key))];
   $('#fRound').insertAdjacentHTML(
