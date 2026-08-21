@@ -150,6 +150,68 @@ def _recent_form(games: list | None) -> float | None:
     return sum(vals) / len(vals) if vals else None
 
 
+def preview_summary(pv: dict, home_code: str, away_code: str) -> dict | None:
+    """보드 카드에 노출할 경기 참고 정보 요약 (betgirl_events.preview).
+
+    배당 산출에 이미 쓰는 프리뷰에서 표시용 알맹이만 추린다. era·wra 는 API 가
+    주는 문자열 그대로 저장한다 — 가공하면 매 동기화마다 값이 미세하게 달라져
+    불필요한 PATCH 가 생긴다(변경 감지는 dict 동등 비교).
+    """
+    if not pv:
+        return None
+
+    def starter(side: str) -> dict | None:
+        st = pv.get(f"{side}Starter") or {}
+        name = (st.get("playerInfo") or {}).get("name")
+        if not name:
+            return None                      # 선발 미발표
+        s = st.get("currentSeasonStats") or {}
+        out = {"name": name}
+        for k in ("era", "w", "l", "inn"):
+            if s.get(k) is not None:
+                out[k] = s[k]
+        return out
+
+    def recent(side: str, code: str) -> dict | None:
+        w = d = l = rs = ra = n = 0
+        for g in pv.get(f"{side}TeamPreviousGames") or []:
+            res = g.get("result")
+            if res not in ("승", "무", "패"):
+                continue
+            w += res == "승"; d += res == "무"; l += res == "패"
+            ours, theirs = ((g.get("hScore"), g.get("aScore"))
+                            if g.get("hCode") == code else (g.get("aScore"), g.get("hScore")))
+            try:
+                rs += int(ours); ra += int(theirs); n += 1
+            except (TypeError, ValueError):
+                pass
+        if not (w or d or l):
+            return None
+        out = {"w": w, "d": d, "l": l}
+        if n:
+            out["rs"] = round(rs / n, 1)     # 경기당 득점
+            out["ra"] = round(ra / n, 1)     # 경기당 실점
+        return out
+
+    def standing(side: str) -> dict | None:
+        s = pv.get(f"{side}Standings") or {}
+        out = {k: s[k] for k in ("rank", "wra") if s.get(k) is not None}
+        return out or None
+
+    vs = pv.get("seasonVsResult") or {}
+    h2h = {k: vs[k] for k in ("hw", "hd", "hl") if vs.get(k) is not None} or None
+
+    out = {
+        "home": {"starter": starter("home"), "recent": recent("home", home_code),
+                 "standing": standing("home")},
+        "away": {"starter": starter("away"), "recent": recent("away", away_code),
+                 "standing": standing("away")},
+        "vs": h2h,                           # 시즌 상대전적, 홈팀 기준 승/무/패
+    }
+    has_any = h2h or any(v for s_ in (out["home"], out["away"]) for v in s_.values())
+    return out if has_any else None
+
+
 def compute_odds(home_code: str, away_code: str, wra: dict[str, float],
                  preview: dict) -> tuple[float, float]:
     """경기별 승패 배당 — 실제 북(betman 등)이 가격에 반영하는 요소들의 가중 평균.
@@ -231,7 +293,15 @@ def main() -> int:
     token = bot_token()
     games = naver_games()
     wra = standings()
-    events = sb("betgirl_events?select=id,home,away,start_at,status,result_code,options", ANON_KEY)
+    # preview 컬럼은 020 마이그레이션 이후에만 존재 — 없으면 참고 정보만 생략하고 동작
+    try:
+        events = sb("betgirl_events?select=id,home,away,start_at,status,result_code,options,preview",
+                    ANON_KEY)
+        has_preview = True
+    except Exception:  # noqa: BLE001 — 42703(컬럼 없음) 등
+        events = sb("betgirl_events?select=id,home,away,start_at,status,result_code,options", ANON_KEY)
+        has_preview = False
+        print("preview 컬럼 없음(020 미적용) — 경기 참고 정보 저장 생략")
 
     def find_event(home: str, away: str, date: str):
         for e in events:
@@ -240,6 +310,7 @@ def main() -> int:
         return None
 
     to_create, to_cancel, to_retime, to_settle, to_reodds = [], [], [], [], []
+    to_repreview = []
 
     for g in games:
         home = TEAMS.get(g["homeTeamCode"])
@@ -267,8 +338,9 @@ def main() -> int:
             continue
 
         # 배당은 시작 전 경기에만 필요 — 경기별 프리뷰(선발·폼·상대전적)를 반영
-        oh, oa = compute_odds(g["homeTeamCode"], g["awayTeamCode"], wra,
-                              game_preview(g["gameId"]))
+        pv = game_preview(g["gameId"])
+        oh, oa = compute_odds(g["homeTeamCode"], g["awayTeamCode"], wra, pv)
+        summary = preview_summary(pv, g["homeTeamCode"], g["awayTeamCode"]) if has_preview else None
 
         options = [
             {"code": "HOME", "label": f"{home} 승", "odds": oh},
@@ -288,6 +360,7 @@ def main() -> int:
                 "options": options,
                 "official_url": proof,
                 "note": f"{g['stadium']} · 네이버 스포츠 공식 일정 자동 연동 · 배당=팀 전력·선발 ERA·최근 폼·상대전적 산출(시작 전 자동 갱신)",
+                **({"preview": summary} if summary else {}),
             })
         elif ev["status"] == "open":
             if datetime.fromisoformat(ev["start_at"]) != datetime.fromisoformat(start_iso):
@@ -296,9 +369,13 @@ def main() -> int:
             cur = {o.get("code"): round(float(o.get("odds", 0)), 2) for o in (ev.get("options") or [])}
             if cur.get("HOME") != oh or cur.get("AWAY") != oa:
                 to_reodds.append((ev["id"], options))
+            # 참고 정보는 내용이 실제 바뀐 경우만 갱신 (선발 발표·최근 경기 반영 등).
+            # summary 가 None 이면 기존 저장분을 지우지 않고 놔둔다.
+            if summary and summary != ev.get("preview"):
+                to_repreview.append((ev["id"], summary))
 
     print(f"신규 {len(to_create)} / 취소 {len(to_cancel)} / 시각변경 {len(to_retime)} "
-          f"/ 배당갱신 {len(to_reodds)} / 정산 {len(to_settle)}")
+          f"/ 배당갱신 {len(to_reodds)} / 정보갱신 {len(to_repreview)} / 정산 {len(to_settle)}")
 
     # 정산은 봇 운영자 RPC 경유 (수수료·결과기록·가드 = DB 로직 단일 소스)
     for ev, winner, proof, score in to_settle:
@@ -342,6 +419,14 @@ def main() -> int:
         sb(f"betgirl_events?id=eq.{ev_id}", wkey, "PATCH", {"options": options},
            prefer="return=minimal", bearer=wbearer)
         print(f"  배당 갱신: event {ev_id} → {options[0]['odds']} / {options[1]['odds']}")
+
+    for ev_id, summary in to_repreview:
+        try:
+            sb(f"betgirl_events?id=eq.{ev_id}", wkey, "PATCH", {"preview": summary},
+               prefer="return=minimal", bearer=wbearer)
+            print(f"  정보 갱신: event {ev_id}")
+        except Exception as e:  # noqa: BLE001 — 참고 정보 실패가 동기화 전체를 막으면 안 됨
+            print(f"  ⚠️ 정보 갱신 실패 event {ev_id}: {e}")
 
     for ev, proof in to_cancel:
         if token:

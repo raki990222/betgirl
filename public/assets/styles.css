@@ -453,3 +453,18 @@ footer.site .foot-corp {
   .hero h1 { font-size: 23px; }
   .stat .value { font-size: 21px; }
 }
+
+/* ------------------------------------------------------------------ 경기 참고 정보 */
+.match-info { margin-top: 9px; border-top: 1px dashed var(--line); padding-top: 8px; font-size: 12px; }
+.match-info > summary { cursor: pointer; color: var(--muted); user-select: none; list-style: none; }
+.match-info > summary::-webkit-details-marker { display: none; }
+.match-info > summary::before { content: '▸ '; color: var(--accent); }
+.match-info[open] > summary::before { content: '▾ '; }
+.mi-tbl { width: 100%; border-collapse: collapse; margin-top: 7px; }
+.mi-tbl th, .mi-tbl td { padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--line); font-weight: 400; vertical-align: top; }
+.mi-tbl thead th { color: var(--text); font-weight: 700; }
+.mi-tbl td:first-child, .mi-tbl th:first-child { color: var(--muted); white-space: nowrap; width: 1%; }
+.mi-tbl strong { color: var(--text); }
+.mi-vs { margin-top: 7px; color: var(--muted); }
+.mi-vs strong { color: var(--text); }
+.mi-note { margin-top: 6px; font-size: 11px; }

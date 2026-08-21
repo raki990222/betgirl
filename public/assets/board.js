@@ -380,6 +380,56 @@ function renderMatches() {
   $('#matches').innerHTML = html;
 }
 
+/* ------------------------------------------------- 경기 참고 정보 (preview)
+   kbo_sync 가 네이버 프리뷰를 요약해 저장한 값. 경기 시작 전에만 갱신되므로
+   시작 후에는 "경기 전 참고 정보"의 기록으로 그대로 남는다. */
+function previewPanel(e) {
+  const p = e.preview;
+  if (!p || (!p.home && !p.away && !p.vs)) return '';
+
+  const starterTxt = (s) => {
+    if (!s?.name) return '<span class="dim">미발표</span>';
+    const era = s.era != null ? ` ERA ${esc(String(s.era))}` : '';
+    const rec = s.w != null && s.l != null ? ` · ${Number(s.w)}승 ${Number(s.l)}패` : '';
+    return `<strong>${esc(s.name)}</strong><span class="dim">${era}${rec}</span>`;
+  };
+  const recentTxt = (r) => {
+    if (!r) return '<span class="dim">—</span>';
+    const rec = `${Number(r.w)}승${r.d ? ` ${Number(r.d)}무` : ''} ${Number(r.l)}패`;
+    const runs = r.rs != null && r.ra != null
+      ? `<span class="dim"> · 득 ${Number(r.rs)} / 실 ${Number(r.ra)}</span>` : '';
+    return `${esc(rec)}${runs}`;
+  };
+  const standTxt = (s) => {
+    if (!s) return '<span class="dim">—</span>';
+    const rank = s.rank != null ? `${Number(s.rank)}위` : '';
+    const wra = s.wra != null ? `${rank ? ' · ' : ''}승률 ${esc(String(s.wra))}` : '';
+    return `${esc(rank)}${wra}` || '<span class="dim">—</span>';
+  };
+  const h = p.home || {}, a = p.away || {};
+
+  const vsLine = p.vs && (p.vs.hw != null || p.vs.hl != null)
+    ? `<div class="mi-vs">시즌 상대전적 <strong>${esc(e.home)}</strong> 기준
+         ${Number(p.vs.hw ?? 0)}승${p.vs.hd ? ` ${Number(p.vs.hd)}무` : ''} ${Number(p.vs.hl ?? 0)}패</div>`
+    : '';
+
+  return `
+    <details class="match-info">
+      <summary>경기 정보 <span class="dim">선발 투수 · 최근 5경기 · 상대전적</span></summary>
+      <div class="tbl-scroll"><table class="mi-tbl">
+        <thead><tr><th></th><th>${esc(e.home)}</th><th>${esc(e.away)}</th></tr></thead>
+        <tbody>
+          <tr><td>선발</td><td>${starterTxt(h.starter)}</td><td>${starterTxt(a.starter)}</td></tr>
+          <tr><td>최근 5경기 <span class="dim">(경기당 득/실)</span></td>
+              <td>${recentTxt(h.recent)}</td><td>${recentTxt(a.recent)}</td></tr>
+          <tr><td>순위</td><td>${standTxt(h.standing)}</td><td>${standTxt(a.standing)}</td></tr>
+        </tbody>
+      </table></div>
+      ${vsLine}
+      <div class="mi-note dim">출처 네이버 스포츠 · 참고용 정보이며 적중을 보장하지 않습니다 · 배당 산출에 쓰인 것과 같은 데이터</div>
+    </details>`;
+}
+
 function matchCard(e) {
   const picked = slip.get(e.id);
   const opts = Array.isArray(e.options) ? e.options : [];
@@ -428,6 +478,7 @@ function matchCard(e) {
       <div class="match-teams">${esc(e.home)} <span class="dim">vs</span> ${esc(e.away)}</div>
       <div class="opts">${buttons}</div>
       ${resultLine}
+      ${previewPanel(e)}
       <div class="match-foot dim">
         등록된 픽 ${e.pick_count}건 · 합계 ${won(e.staked)}
         ${safeUrl(e.official_url) ? ` · <a href="${esc(safeUrl(e.official_url))}" target="_blank" rel="noopener noreferrer">공식 정보</a>` : ''}
