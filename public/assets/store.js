@@ -9,6 +9,20 @@ const won = (n) => Number(n).toLocaleString('ko-KR') + '원';
 let widgets = null;
 let current = null;   // 선택 상품
 
+/* 상품 이미지 URL 가드 — 사이트 상대경로(/...)와 https 절대 URL 만 렌더한다.
+   `//evil.com/x.png`(프로토콜 상대)·`javascript:` 같은 값이 DB에 들어와도 렌더되지 않는다. */
+const PROD_FALLBACK = '/items/placeholder.svg';
+const prodImage = (u) => {
+  const s = String(u ?? '').trim();
+  if (!s) return PROD_FALLBACK;
+  if (s.startsWith('/') && !s.startsWith('//')) return s;
+  try {
+    return new URL(s).protocol === 'https:' ? s : PROD_FALLBACK;
+  } catch {
+    return PROD_FALLBACK;
+  }
+};
+
 /* ------------------------------------------------------------------ 상품 목록 */
 async function loadProducts() {
   const { data, error } = await sb
@@ -21,6 +35,8 @@ async function loadProducts() {
     .map((p) => {
       const out = p.stock !== null && p.stock <= 0;
       return `<div class="prod">
+        <img class="prod-thumb" src="${esc(prodImage(p.image_url))}" alt=""
+             width="320" height="200" loading="lazy" decoding="async">
         <h3>${esc(p.name)}</h3>
         ${p.description ? `<div class="desc">${esc(p.description)}</div>` : ''}
         <div class="price">${won(p.price_krw)}</div>
