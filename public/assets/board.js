@@ -324,6 +324,20 @@ async function loadBoard() {
     rounds.map((r) => `<option value="${esc(r)}">${esc(r)}</option>`).join('')
   );
 
+  // 기본 선택은 당일 회차 — 당일 경기가 없으면(휴식일) 다음 임박 회차, 그것도 없으면 전체
+  const todayKey = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+  const roundDay = new Map();   // round_key → 그 회차의 가장 이른 날짜(KST)
+  for (const e of board) {
+    const d = new Date(e.start_at).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+    if (!roundDay.has(e.round_key) || d < roundDay.get(e.round_key)) roundDay.set(e.round_key, d);
+  }
+  const todayRound = [...roundDay].find(([, d]) => d === todayKey)?.[0];
+  const nextRound = [...roundDay]
+    .filter(([, d]) => d > todayKey)
+    .sort((a, b) => a[1].localeCompare(b[1]))[0]?.[0];
+  const defRound = todayRound ?? nextRound;
+  if (defRound) $('#fRound').value = defRound;
+
   renderMatches();
 }
 
