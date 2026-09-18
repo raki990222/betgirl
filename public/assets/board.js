@@ -53,6 +53,18 @@ const untilLabel = (ts) => {
 };
 
 /* ------------------------------------------------------------------ 계정 */
+// Supabase 로그인 오류는 영문이라, 비밀번호가 틀렸을 때 다음에 뭘 해야 하는지 안 보였다.
+// 🔴 2026-09-18 DB 이전으로 기존 회원은 비밀번호를 다시 정해야 한다 — 틀림 → 재설정 링크로 바로 안내.
+function loginErrorHtml(error) {
+  const code = error?.code || '';
+  const msg = String(error?.message || '');
+  if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg))
+    return '이메일 또는 비밀번호가 맞지 않습니다. 비밀번호를 잊었다면 <a href="/reset">재설정 메일</a>을 받으세요.';
+  if (code === 'email_not_confirmed' || /email not confirmed/i.test(msg))
+    return '아직 이메일 확인 전입니다. 가입 확인 메일의 링크를 먼저 눌러 주세요(안 보이면 스팸함 확인).';
+  return esc(msg || '로그인하지 못했습니다.');
+}
+
 function renderAccount() {
   const el = $('#account');
 
@@ -86,6 +98,9 @@ function renderAccount() {
             </div>
             <div class="field" style="margin:0"><button type="submit" style="width:100%" id="authSubmit">로그인</button></div>
           </form>
+          <div class="dim" id="authForgot" style="margin-top:10px">
+            비밀번호를 잊으셨나요? <a href="/reset">재설정 메일 받기</a>
+          </div>
         </div>
         <div class="note" id="authNote">
           참여 순서: ① 이메일 가입 → ② 확인 메일 클릭 → ③ 로그인 → ④ 참가 등록.
@@ -103,6 +118,7 @@ function renderAccount() {
       $('#authToggle').textContent = signupMode ? '로그인으로' : '계정 만들기';
       $('#authPw2Field').hidden = !signupMode;
       $('#authInviteField').hidden = !signupMode;
+      $('#authForgot').hidden = signupMode;
       $('#authPw2').required = signupMode;
       $('#authPw').autocomplete = signupMode ? 'new-password' : 'current-password';
       $('#authMsg').innerHTML = '';
@@ -146,7 +162,7 @@ function renderAccount() {
 
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
-        $('#authMsg').innerHTML = `<div class="msg err">${esc(error.message)}</div>`;
+        $('#authMsg').innerHTML = `<div class="msg err">${loginErrorHtml(error)}</div>`;
         return;
       }
       location.reload();
