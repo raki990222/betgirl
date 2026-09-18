@@ -26,12 +26,13 @@
 <footer class="site"></footer>
 <script src="/config.js"></script>
 <script type="module">
-  import { initNav } from '/assets/app.js';
+  import { initNav, esc } from '/assets/app.js';
   initNav('/store');
+  // 🔴 주소창 값은 누구나 만들 수 있다 — 그대로 innerHTML 에 넣으면 반사형 XSS(로그인 세션 탈취)
   const q = new URLSearchParams(location.search);
   const msg = q.get('message'), code = q.get('code');
   if (msg) document.querySelector('#body').innerHTML =
-    `<div class="msg err">${msg}${code ? ` (${code})` : ''}</div>`;
+    `<div class="msg err">${esc(msg)}${code ? ` (${esc(code)})` : ''}</div>`;
 </script>
 </body>
 </html>
