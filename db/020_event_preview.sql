@@ -4,7 +4,7 @@
 -- betgirl_events.preview(jsonb) 에 저장하고, 보드 카드의 접이식 패널로 노출한다.
 -- 경기 시작 전에만 갱신되므로 시작 후에는 "경기 전 참고 정보"의 기록으로 남는다.
 --
--- ⚠️ 실행 전 프로젝트 확인: betgirl(scpijkzdxalswmnljafu) — livereAI 아님!
+-- ⚠️ 실행 전 프로젝트 확인: betgirl(pdrumaylajbjgvbxindi) — livereAI 아님!
 -- 실행: Supabase SQL Editor. 멱등(재실행 무해).
 
 alter table public.betgirl_events

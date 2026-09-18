@@ -1,7 +1,7 @@
 // betgirl — 주문 생성 (서버가 상품 정가로 금액을 확정한다. 클라이언트 금액 위조 방지)
 // POST { productId, email } → { orderId, amount, orderName }
 
-const SUPABASE_URL = 'https://scpijkzdxalswmnljafu.supabase.co';
+const SUPABASE_URL = 'https://pdrumaylajbjgvbxindi.supabase.co';
 
 async function sb(path, { method = 'GET', body, prefer } = {}) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

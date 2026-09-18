@@ -4,7 +4,7 @@
 // 핵심 방어: 클라이언트가 보낸 amount 를 믿지 않고, 주문 테이블의 서버 확정 금액과
 //           일치하는지 확인한 뒤에만 토스 승인을 호출한다.
 
-const SUPABASE_URL = 'https://scpijkzdxalswmnljafu.supabase.co';
+const SUPABASE_URL = 'https://pdrumaylajbjgvbxindi.supabase.co';
 
 async function sb(path, { method = 'GET', body, prefer } = {}) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

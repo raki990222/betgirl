@@ -26,11 +26,11 @@ try:
 except ImportError:  # certifi 없으면 시스템 기본 (python.org 파이썬은 인증서 미설치일 수 있음)
     SSL_CTX = ssl.create_default_context()
 
-SUPABASE_URL = "https://scpijkzdxalswmnljafu.supabase.co"
+SUPABASE_URL = "https://pdrumaylajbjgvbxindi.supabase.co"
 ANON_KEY = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjcGlqa3pkeGFsc3dtbmxqYWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MDg5NDksImV4cCI6MjEwMTQ4NDk0OX0."
-    "w9MAXZorH9-VunRq-Z6_VH7pWGUYLSYlNsvfmSWkYwE"
+    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcnVtYXlsYWpiamd2YnhpbmRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjcyMzMsImV4cCI6MjEwNTIwMzIzM30."
+    "d6wWqpv2bt5R4JqySMRLua364JLIAkJBGxCTn1M0rug"
 )
 ANCHOR_DIR = Path.home() / "betgirl-anchor"
 ANCHOR_FILE = ANCHOR_DIR / "anchors.jsonl"
